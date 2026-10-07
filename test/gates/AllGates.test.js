@@ -198,6 +198,7 @@ suite.test("knownDoNothingGateFamilies", () => {
         'setR',
         // Displays don't have effects.
         'Amps1',
+        'ExactAmps1',
         'Chance',
         'Sample1',
         'Density',

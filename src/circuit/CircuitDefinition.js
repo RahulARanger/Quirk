@@ -812,6 +812,31 @@ class CircuitDefinition {
     }
 
     /**
+     * @param {!int} col
+     * @returns {undefined|![!int, !int, !Gate]}
+     */
+    colGetEnabledRxxGate(col) {
+        if (col < 0 || col >= this.columns.length) {
+            return undefined;
+        }
+        let locs = [];
+        let pairId = Gates.Special.RxxHalf.serializedId;
+        for (let row = 0; row < this.numWires; row++) {
+            let gate = this.gateInSlot(col, row);
+            if (gate !== undefined && gate.serializedId === pairId) {
+                if (this.gateAtLocIsDisabledReason(col, row) !== undefined) {
+                    return undefined;
+                }
+                locs.push(row);
+            }
+        }
+        if (locs.length !== 2) {
+            return undefined;
+        }
+        return [locs[0], locs[1], this.gateInSlot(col, locs[0])];
+    }
+
+    /**
      * @param {!Point} pt
      * @param {!string} key
      * @returns {!boolean}
@@ -947,7 +972,9 @@ class CircuitDefinition {
         }
 
         this._applyOpsInCol(colIndex, ctx, gate => {
-            if (gate.definitelyHasNoEffect() || gate === Gates.Special.SwapHalf) {
+            if (gate.definitelyHasNoEffect() ||
+                    gate === Gates.Special.SwapHalf ||
+                    gate.serializedId === Gates.Special.RxxHalf.serializedId) {
                 return undefined;
             }
 
@@ -962,6 +989,15 @@ class CircuitDefinition {
         if (swapRows !== undefined) {
             let [i, j] = swapRows;
             ctx.applyOperation(CircuitShaders.swap(ctx.withRow(i + ctx.row), j + ctx.row));
+        }
+
+        let rxxGate = this.colGetEnabledRxxGate(colIndex);
+        if (rxxGate !== undefined) {
+            let [i, j, gate] = rxxGate;
+            ctx.applyOperation(CircuitShaders.rxx(
+                ctx.withRow(i + ctx.row),
+                j + ctx.row,
+                gate.knownMatrixAt(ctx.time)));
         }
     }
 
@@ -1069,18 +1105,21 @@ class CircuitDefinition {
         let n = col.gates.length;
 
         let swapRows = this.colGetEnabledSwapGate(columnIndex);
+        let rxxRows = this.colGetEnabledRxxGate(columnIndex);
 
         let pt = i => new Point(columnIndex, i);
         let hasControllable = i => this.locHasControllableGate(pt(i));
         let hasCoherentControl = i => this.locStartsSingleControlWire(pt(i));
         let hasMeasuredControl = i => this.locStartsDoubleControlWire(pt(i));
         let hasSwap = i => swapRows !== undefined && swapRows.indexOf(i) !== -1;
+        let hasRxx = i => rxxRows !== undefined && rxxRows.indexOf(i) !== -1;
         let coversCoherentWire = i => this.locClassifyMeasuredIncludingGateExtension(pt(i)) !== true;
         let coversMeasuredWire = i => this.locClassifyMeasuredIncludingGateExtension(pt(i)) !== false;
 
         // Control connections.
         let result = [
             srcDstMatchInRange(n, hasSwap, hasSwap, false),
+            srcDstMatchInRange(n, hasRxx, hasRxx, false),
             srcDstMatchInRange(n, hasControllable, hasCoherentControl, false),
             srcDstMatchInRange(n, hasControllable, hasMeasuredControl, true),
         ];

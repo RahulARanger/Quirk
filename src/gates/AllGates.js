@@ -15,7 +15,7 @@
  */
 
 import {ArithmeticGates} from "./ArithmeticGates.js"
-import {AmplitudeDisplayFamily} from "./AmplitudeDisplay.js"
+import {AmplitudeDisplayFamily, ExactAmplitudeDisplayFamily} from "./AmplitudeDisplay.js"
 import {BitCountGates} from "./BitCountGates.js"
 import {BlochSphereDisplay} from "./BlochSphereDisplay.js"
 import {ComparisonGates} from "./ComparisonGates.js"
@@ -69,7 +69,8 @@ let Gates = {};
 /** Gates that have special behavior requiring custom code / logic to handle. */
 Gates.Special = {
     Measurement: MeasurementGate,
-    SwapHalf: SwapGateHalf
+    SwapHalf: SwapGateHalf,
+    RxxHalf: ParametrizedRotationGates.FormulaicRotationRxxPair
 };
 /**
  * Gates that display information without affecting the state.
@@ -77,6 +78,7 @@ Gates.Special = {
  */
 Gates.Displays = {
     AmplitudeDisplayFamily: AmplitudeDisplayFamily,
+    ExactAmplitudeDisplayFamily: ExactAmplitudeDisplayFamily,
     ProbabilityDisplayFamily: ProbabilityDisplayFamily,
     SampleDisplayFamily: SampleDisplayFamily,
     DensityMatrixDisplayFamily: DensityMatrixDisplayFamily,
@@ -142,6 +144,7 @@ Gates.KnownToSerializer = [
     AntiSqrtImaginaryGate,
 
     ...AmplitudeDisplayFamily.all,
+    ...ExactAmplitudeDisplayFamily.all,
     ...ProbabilityDisplayFamily.all,
     ...SampleDisplayFamily.all,
     ...DensityMatrixDisplayFamily.all,
@@ -200,7 +203,7 @@ Gates.TopToolboxGroups = [
     {
         hint: "Displays",
         gates: [
-            undefined, undefined,
+            ExactAmplitudeDisplayFamily.ofSize(1), undefined,
             DensityMatrixDisplayFamily.ofSize(1), BlochSphereDisplay,
             ProbabilityDisplayFamily.ofSize(1),   AmplitudeDisplayFamily.ofSize(2)
         ]
@@ -358,7 +361,7 @@ Gates.BottomToolboxGroups = [
             ParametrizedRotationGates.RX6, ParametrizedRotationGates.RX6i,
             ParametrizedRotationGates.RY6, ParametrizedRotationGates.RY6i,
             ParametrizedRotationGates.RZ6, ParametrizedRotationGates.RZ6i,
-            ParametrizedRotationGates.FormulaicRotationRxy, undefined,
+            ParametrizedRotationGates.FormulaicRotationRxy, ParametrizedRotationGates.FormulaicRotationRxxPair,
         ]
     },
 ];

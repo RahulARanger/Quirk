@@ -17,6 +17,7 @@
 import {Gate, GateBuilder} from "../circuit/Gate.js"
 import {GatePainting} from "../draw/GatePainting.js"
 import {reverseShaderForSize} from "./ReverseBitsGate.js"
+import {showAlert, showPrompt} from "../ui/dialogs.js"
 
 let InputGates = {};
 
@@ -100,19 +101,22 @@ let makeSetInputGate = key => new GateBuilder().
         GatePainting.paintGateButton(args);
     }).
     setOnClickGateFunc(oldGate => {
-        let txt = prompt(`Enter new fallback value for input ${key} (between 0 and 65535).`,
-            '' + oldGate.param);
-        if (txt === null || txt.trim() === '') {
-            return oldGate;
-        }
+        return showPrompt(`Set fallback value for input ${key}`,
+            `Enter a value between 0 and 65535 for input ${key}.`, '' + oldGate.param).
+            then(txt => {
+                if (txt === null || txt.trim() === '') {
+                    return oldGate;
+                }
 
-        let val = parseInt(txt);
-        if (!Number.isInteger(val) || val < 0 || val >= 1<<16) {
-            alert(`'${txt}' isn't an integer between 0 and 65535. Keeping ${oldGate.param}.`);
-            return oldGate;
-        }
+                let val = parseInt(txt);
+                if (!Number.isInteger(val) || val < 0 || val >= 1<<16) {
+                    return showAlert('Invalid input value',
+                        `'${txt}' isn't an integer between 0 and 65535. Keeping ${oldGate.param}.`).
+                        then(() => oldGate);
+                }
 
-        return oldGate.withParam(val);
+                return oldGate.withParam(val);
+            });
     }).
     setExtraDisableReasonFinder(args => {
         let p = args.gate.param;

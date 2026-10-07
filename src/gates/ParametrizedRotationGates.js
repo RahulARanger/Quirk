@@ -24,6 +24,7 @@ import {Util} from "../base/Util.js";
 import {parseFormula} from "../math/FormulaParser.js";
 import {XExp, YExp, ZExp} from "./ExponentiatingGates.js";
 import {Config} from "../Config.js";
+import {showPrompt} from "../ui/dialogs.js";
 
 let ParametrizedRotationGates = {};
 
@@ -87,6 +88,17 @@ function rxyMatrix(theta, phi) {
         fraction * Math.cos(phi),
         fraction * Math.sin(phi),
         0);
+}
+
+/**
+ * @param {!number} theta Rotation angle in radians.
+ * @returns {!Matrix}
+ */
+function rxxMatrix(theta) {
+    let c = Math.cos(theta / 2);
+    let s = Math.sin(theta / 2);
+    let xx = Matrix.PAULI_X.tensorProduct(Matrix.PAULI_X);
+    return Matrix.identity(4).times(c).plus(xx.times(new Complex(0, -s)));
 }
 
 /**
@@ -304,6 +316,22 @@ function badFormulaDetector(args) {
 }
 
 /**
+ * @param {!GateCheckArgs} args
+ * @returns {undefined|!string}
+ */
+function badRxxPairFormulaDetector(args) {
+    let pairCount = args.innerColumn.gates.filter(g =>
+        g !== undefined && g.serializedId === args.gate.serializedId).length;
+    if (pairCount === 1) {
+        return 'need\nother\nRXX';
+    }
+    if (pairCount > 2) {
+        return 'too\nmany\nRXX';
+    }
+    return badFormulaDetector(args);
+}
+
+/**
  * @param {!Gate} gate
  */
 function updateUsingFormula(gate) {
@@ -373,7 +401,7 @@ function updateUsingRxyFormula(gate) {
  */
 function angleClicker(quantityName) {
     return oldGate => {
-        let txt = prompt(
+        let message =
             `Enter a formula to use for the ${quantityName}.\n` +
             "\n" +
             "The formula can depend on the time variable t.\n" +
@@ -382,17 +410,14 @@ function angleClicker(quantityName) {
             "\n" +
             "Available constants: e, pi\n" +
             "Available functions: cos, sin, acos, asin, tan, atan, ln, sqrt, exp\n" +
-            "Available operators: + * / - ^",
-            '' + oldGate.param);
-        if (txt === null || txt.trim() === '') {
-            return oldGate;
-        }
-        return oldGate.withParam(txt);
+            "Available operators: + * / - ^";
+        return showPrompt(`Edit ${quantityName} formula`, message, '' + oldGate.param).
+            then(txt => txt === null || txt.trim() === '' ? oldGate : oldGate.withParam(txt));
     };
 }
 
 function rxyClicker(oldGate) {
-    let txt = prompt(
+    let message =
         "Enter two formulas for RXY, separated by a comma: theta, phi.\n" +
         "\n" +
         "theta is the rotation angle in radians. phi selects the axis in the XY plane, " +
@@ -400,12 +425,9 @@ function rxyClicker(oldGate) {
         "\n" +
         "Available constants: e, pi\n" +
         "Available functions: cos, sin, acos, asin, tan, atan, ln, sqrt, exp\n" +
-        "Available operators: + * / - ^",
-        '' + oldGate.param);
-    if (txt === null || txt.trim() === '') {
-        return oldGate;
-    }
-    return oldGate.withParam(txt);
+        "Available operators: + * / - ^";
+    return showPrompt('Edit RXY formula', message, '' + oldGate.param).
+        then(txt => txt === null || txt.trim() === '' ? oldGate : oldGate.withParam(txt));
 }
 
 /**
@@ -453,6 +475,37 @@ ParametrizedRotationGates.FormulaicRotationRxy = new GateBuilder().
     setWithParamPropertyRecomputeFunc(updateUsingRxyFormula).
     promiseEffectIsUnitary().
     gate.withParam('pi/2, 0');
+
+ParametrizedRotationGates.FormulaicRotationRxx = new GateBuilder().
+    setSerializedIdAndSymbol("RXXft").
+    setSymbol("RXX").
+    setTitle("Formula RXX Gate").
+    setBlurb("Rotates two qubits around the XX axis by an angle in radians determined by a formula.").
+    setDrawer(configurableRotationDrawer('RXX(f(t))', 0, 1)).
+    setHeight(2).
+    setWidth(2).
+    setExtraDisableReasonFinder(badFormulaDetector).
+    setOnClickGateFunc(angleClicker("RXX gate's angle in radians")).
+    setEffectToTimeVaryingMatrix((t, formula) =>
+        rxxMatrix(parseTimeFormula(formula, t*2-1, true) || 0)).
+    setWithParamPropertyRecomputeFunc(updateUsingFormula).
+    promiseEffectIsUnitary().
+    gate.withParam('pi/2');
+
+ParametrizedRotationGates.FormulaicRotationRxxPair = new GateBuilder().
+    setSerializedIdAndSymbol("RXXpairft").
+    setSymbol("RXX").
+    setTitle("Formula RXX Gate [paired]").
+    setBlurb("Applies an XX rotation between two wires. Place two RXX gates in the same column; the wires may be non-adjacent.").
+    setDrawer(configurableRotationDrawer('RXX(f(t))', 0, 1)).
+    setWidth(2).
+    setExtraDisableReasonFinder(badRxxPairFormulaDetector).
+    setOnClickGateFunc(angleClicker("RXX gate's angle in radians")).
+    setEffectToTimeVaryingMatrix((t, formula) =>
+        rxxMatrix(parseTimeFormula(formula, t*2-1, true) || 0)).
+    setWithParamPropertyRecomputeFunc(updateUsingFormula).
+    promiseEffectIsUnitary().
+    gate.withParam('pi/2');
 
 ParametrizedRotationGates.FormulaicRotationX = new GateBuilder().
     setSerializedIdAndSymbol("X^ft").
@@ -561,6 +614,8 @@ ParametrizedRotationGates.all =[
     ParametrizedRotationGates.FormulaicRotationRy,
     ParametrizedRotationGates.FormulaicRotationRz,
     ParametrizedRotationGates.FormulaicRotationRxy,
+    ParametrizedRotationGates.FormulaicRotationRxx,
+    ParametrizedRotationGates.FormulaicRotationRxxPair,
 ];
 
 export {ParametrizedRotationGates}

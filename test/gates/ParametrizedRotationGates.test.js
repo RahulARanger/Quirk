@@ -295,3 +295,26 @@ suite.testUsingWebGL('formulaic_rxy', () => {
         isApproximatelyEqualTo(Matrix.fromPauliRotation(
             Math.sqrt(0.03125), Math.sqrt(0.03125), 0));
 });
+
+suite.test('formulaic_rxx', () => {
+    let rxx = Gates.ParametrizedRotationGates.FormulaicRotationRxx;
+    let xx = Matrix.PAULI_X.tensorProduct(Matrix.PAULI_X);
+    let expected = (theta) => Matrix.identity(4).times(Math.cos(theta / 2)).plus(
+        xx.times(new Complex(0, -Math.sin(theta / 2))));
+
+    assertThat(rxx.height).isEqualTo(2);
+    assertThat(rxx.withParam('0').knownMatrixAt(0)).
+        isApproximatelyEqualTo(Matrix.identity(4));
+    assertThat(rxx.withParam('pi/2').knownMatrixAt(0)).
+        isApproximatelyEqualTo(expected(Math.PI / 2));
+    assertThat(rxx.withParam('t pi').knownMatrixAt(0.75)).
+        isApproximatelyEqualTo(expected(Math.PI / 2));
+});
+
+suite.test('formulaic_rxx_pair', () => {
+    let rxx = Gates.ParametrizedRotationGates.FormulaicRotationRxxPair;
+    assertThat(rxx.height).isEqualTo(1);
+    assertThat(rxx.withParam('pi/2').knownMatrixAt(0)).
+        isApproximatelyEqualTo(Gates.ParametrizedRotationGates.FormulaicRotationRxx.
+            withParam('pi/2').knownMatrixAt(0));
+});

@@ -233,71 +233,75 @@ const POINTWISE_CMUL_CONJ_SHADER = makePseudoShaderWithInputsAndOutputAndCode(
     }
     `);
 
-/**
- * @type {!function(!GateDrawParams)}
- */
-const AMPLITUDE_DRAWER_FROM_CUSTOM_STATS = GatePainting.makeDisplayDrawer(args => {
-    let n = args.gate.height;
-    let {quality, ket, phaseLockIndex, incoherentKet} = args.customStats || {
-        ket: (n === 1 ? Matrix.zero(2, 1) : Matrix.zero(1 << Math.floor(n / 2), 1 << Math.ceil(n / 2))).times(NaN),
-        quality: 1,
-        phaseLockIndex: 0,
-        incoherentKet: undefined
-    };
+function makeAmplitudeDisplayDrawer(useExactValues) {
+    return GatePainting.makeDisplayDrawer(args => {
+        let n = args.gate.height;
+        let {quality, ket, phaseLockIndex, incoherentKet} = args.customStats || {
+            ket: (n === 1 ? Matrix.zero(2, 1) : Matrix.zero(1 << Math.floor(n / 2), 1 << Math.ceil(n / 2))).times(NaN),
+            quality: 1,
+            phaseLockIndex: 0,
+            incoherentKet: undefined
+        };
 
-    let isIncoherent = quality < 0.99;
-    let matrix = isIncoherent ? incoherentKet : ket;
-    let dw = args.rect.w - args.rect.h*ket.width()/ket.height();
-    let drawRect = args.rect.skipLeft(dw/2).skipRight(dw/2);
-    let indicatorAlpha = Math.min(1, Math.max(0, (quality - 0.9999) / 0.0001));
-    MathPainter.paintMatrix(
-        args.painter,
-        matrix,
-        drawRect,
-        Config.SUPERPOSITION_MID_COLOR,
-        'black',
-        Config.SUPERPOSITION_FORE_COLOR,
-        Config.SUPERPOSITION_BACK_COLOR,
-        `rgba(0, 0, 0, ${indicatorAlpha})`);
+        let isIncoherent = quality < 0.99;
+        let matrix = isIncoherent ? incoherentKet : ket;
+        let dw = args.rect.w - args.rect.h*ket.width()/ket.height();
+        let drawRect = args.rect.skipLeft(dw/2).skipRight(dw/2);
+        let indicatorAlpha = Math.min(1, Math.max(0, (quality - 0.9999) / 0.0001));
+        MathPainter.paintMatrix(
+            args.painter,
+            matrix,
+            drawRect,
+            Config.SUPERPOSITION_MID_COLOR,
+            'black',
+            Config.SUPERPOSITION_FORE_COLOR,
+            Config.SUPERPOSITION_BACK_COLOR,
+            `rgba(0, 0, 0, ${indicatorAlpha})`);
 
-    let forceSign = v => (v >= 0 ? '+' : '') + v.toFixed(2);
-    if (isIncoherent) {
-        MathPainter.paintMatrixTooltip(args.painter, matrix, drawRect, args.focusPoints,
-            (c, r) => `Chance of |${Util.bin(r*matrix.width() + c, args.gate.height)}⟩ (decimal ${r*matrix.width() + c}) [amplitude not defined]`,
-            (c, r, v) => `raw: ${(v.norm2()*100).toFixed(4)}%, log: ${(Math.log10(v.norm2())*10).toFixed(1)} dB`,
-            (c, r, v) => '[entangled with other qubits]');
-    } else {
-        MathPainter.paintMatrixTooltip(args.painter, matrix, drawRect, args.focusPoints,
-            (c, r) => `Amplitude of |${Util.bin(r*matrix.width() + c, args.gate.height)}⟩ (decimal ${r*matrix.width() + c})`,
-            (c, r, v) => 'val:' + v.toString(new Format(false, 0, 5, ", ")),
-            (c, r, v) => `mag²:${(v.norm2()*100).toFixed(4)}%, phase:${forceSign(v.phase() * 180 / Math.PI)}°`);
-        if (phaseLockIndex !== undefined) {
-            let cw = drawRect.w/matrix.width();
-            let rh = drawRect.h/matrix.height();
-            let c = phaseLockIndex % matrix.width();
-            let r = Math.floor(phaseLockIndex / matrix.width());
-            let cx = drawRect.x + cw*(c+0.5);
-            let cy = drawRect.y + rh*(r+0.5);
-            args.painter.strokeLine(
-                new Point(cx, cy),
-                new Point(cx + cw/2, cy),
-                `rgba(255,0,0,${indicatorAlpha})`,
-                2);
-            args.painter.print(
-                'fixed',
-                cx + 0.5*cw,
-                cy,
-                'right',
-                'bottom',
-                `rgba(255,0,0,${indicatorAlpha})`,
-                '12px monospace',
-                cw*0.5,
-                rh*0.5);
+        let forceSign = v => (v >= 0 ? '+' : '') + v.toFixed(2);
+        if (isIncoherent) {
+            MathPainter.paintMatrixTooltip(args.painter, matrix, drawRect, args.focusPoints,
+                (c, r) => `Chance of |${Util.bin(r*matrix.width() + c, args.gate.height)}⟩ (decimal ${r*matrix.width() + c}) [amplitude not defined]`,
+                (c, r, v) => `raw: ${(v.norm2()*100).toFixed(4)}%, log: ${(Math.log10(v.norm2())*10).toFixed(1)} dB`,
+                (c, r, v) => '[entangled with other qubits]');
+        } else {
+            MathPainter.paintMatrixTooltip(args.painter, matrix, drawRect, args.focusPoints,
+                (c, r) => `${useExactValues ? 'Exact amplitude' : 'Amplitude'} of |${Util.bin(r*matrix.width() + c, args.gate.height)}⟩ (decimal ${r*matrix.width() + c})`,
+                (c, r, v) => useExactValues ? exactComplexText(v) : 'val:' + v.toString(new Format(false, 0, 5, ", ")),
+                (c, r, v) => useExactValues ?
+                    `probability:${exactRealText(v.norm2())}, phase:${forceSign(v.phase() * 180 / Math.PI)}°` :
+                    `mag²:${(v.norm2()*100).toFixed(4)}%, phase:${forceSign(v.phase() * 180 / Math.PI)}°`);
+            if (phaseLockIndex !== undefined) {
+                let cw = drawRect.w/matrix.width();
+                let rh = drawRect.h/matrix.height();
+                let c = phaseLockIndex % matrix.width();
+                let r = Math.floor(phaseLockIndex / matrix.width());
+                let cx = drawRect.x + cw*(c+0.5);
+                let cy = drawRect.y + rh*(r+0.5);
+                args.painter.strokeLine(
+                    new Point(cx, cy),
+                    new Point(cx + cw/2, cy),
+                    `rgba(255,0,0,${indicatorAlpha})`,
+                    2);
+                args.painter.print(
+                    'fixed',
+                    cx + 0.5*cw,
+                    cy,
+                    'right',
+                    'bottom',
+                    `rgba(255,0,0,${indicatorAlpha})`,
+                    '12px monospace',
+                    cw*0.5,
+                    rh*0.5);
+            }
         }
-    }
 
-    paintErrorIfPresent(args, indicatorAlpha);
-});
+        paintErrorIfPresent(args, indicatorAlpha);
+    });
+}
+
+const AMPLITUDE_DRAWER_FROM_CUSTOM_STATS = makeAmplitudeDisplayDrawer(false);
+const EXACT_AMPLITUDE_DRAWER_FROM_CUSTOM_STATS = makeAmplitudeDisplayDrawer(true);
 
 /**
  * @param {!GateDrawParams} args
@@ -332,6 +336,68 @@ function paintErrorIfPresent(args, indicatorAlpha) {
 /**
  * @param {!{quality: !number, ket: !Matrix, phaseLockIndex: !int,incoherentKet: !Matrix}} customStats
  */
+function exactRealText(value) {
+    const epsilon = 0.0005;
+    if (!Number.isFinite(value)) {
+        return 'NaN';
+    }
+    let magnitude = Math.abs(value);
+    if (magnitude < epsilon) {
+        return '0';
+    }
+    let sign = value < 0 ? '-' : '';
+    if (Math.abs(magnitude - 1) < epsilon) {
+        return sign + '1';
+    }
+
+    // Fall back to a reduced rational fraction when one is recognized.
+    for (let denominator = 2; denominator <= 16; denominator++) {
+        let numerator = Math.round(magnitude * denominator);
+        if (numerator < 1 || numerator >= denominator) {
+            continue;
+        }
+        if (Math.abs(magnitude - numerator / denominator) >= epsilon) {
+            continue;
+        }
+        let divisor = _greatestCommonDivisor(numerator, denominator);
+        return `${sign}${numerator / divisor}/${denominator / divisor}`;
+    }
+
+    // Prefer the quantum notation people expect for common states, e.g. 1/√2.
+    for (let denominator = 2; denominator <= 16; denominator++) {
+        if (Math.abs(magnitude - 1 / Math.sqrt(denominator)) < epsilon) {
+            return `${sign}1/√${denominator}`;
+        }
+    }
+
+    return sign + Format.SIMPLIFIED.formatFloat(magnitude);
+}
+
+function _greatestCommonDivisor(a, b) {
+    while (b !== 0) {
+        let remainder = a % b;
+        a = b;
+        b = remainder;
+    }
+    return a;
+}
+
+/** @param {!Complex} value @returns {!string} */
+function exactComplexText(value) {
+    const epsilon = 0.0005;
+    let realIsZero = Math.abs(value.real) < epsilon;
+    let imagIsZero = Math.abs(value.imag) < epsilon;
+    if (imagIsZero) {
+        return exactRealText(value.real);
+    }
+    if (realIsZero) {
+        let imag = exactRealText(value.imag);
+        return imag === '1' ? 'i' : imag === '-1' ? '-i' : `${imag}i`;
+    }
+    let imagMagnitude = exactRealText(Math.abs(value.imag));
+    return `${exactRealText(value.real)} ${value.imag < 0 ? '-' : '+'} ${imagMagnitude}i`;
+}
+
 function customStatsToJsonData(customStats) {
     let {quality, ket, phaseLockIndex, incoherentKet} = customStats;
     let n = ket.width() * ket.height();
@@ -343,11 +409,11 @@ function customStatsToJsonData(customStats) {
     };
 }
 
-let AmplitudeDisplayFamily = Gate.buildFamily(1, 16, (span, builder) => builder.
-    setSerializedId("Amps" + span).
-    setSymbol("Amps").
-    setTitle("Amplitude Display").
-    setBlurb("Shows the amplitudes of some wires, if separable.\nUse controls to see conditional amplitudes.").
+let makeAmplitudeDisplayBuilder = (span, builder, serializedPrefix, symbol, title, blurb, drawer) => builder.
+    setSerializedId(serializedPrefix + span).
+    setSymbol(symbol).
+    setTitle(title).
+    setBlurb(blurb).
     setWidth(span === 1 ? 2 : span % 2 === 0 ? span : Math.ceil(span/2)).
     promiseHasNoNetEffectOnStateVector().
     setExtraDisableReasonFinder(args => args.isNested ? "can't\nnest\ndisplays\n(sorry)" : undefined).
@@ -360,14 +426,34 @@ let AmplitudeDisplayFamily = Gate.buildFamily(1, 16, (span, builder) => builder.
             span)).
     setStatPixelDataPostProcessor((val, def) => processOutputs(span, val, def)).
     setProcessedStatsToJsonFunc(customStatsToJsonData).
-    setDrawer(AMPLITUDE_DRAWER_FROM_CUSTOM_STATS));
+    setDrawer(drawer);
+
+let AmplitudeDisplayFamily = Gate.buildFamily(1, 16, (span, builder) => makeAmplitudeDisplayBuilder(
+    span,
+    builder,
+    "Amps",
+    "Amps",
+    "Amplitude Display",
+    "Shows the amplitudes of some wires, if separable.\nUse controls to see conditional amplitudes.",
+    AMPLITUDE_DRAWER_FROM_CUSTOM_STATS));
+
+let ExactAmplitudeDisplayFamily = Gate.buildFamily(1, 16, (span, builder) => makeAmplitudeDisplayBuilder(
+    span,
+    builder,
+    "ExactAmps",
+    "Exact",
+    "Exact Amplitude Display",
+    "Shows common amplitudes as exact fractions and roots, such as 1/√2.",
+    EXACT_AMPLITUDE_DRAWER_FROM_CUSTOM_STATS));
 
 export {
     AmplitudeDisplayFamily,
+    ExactAmplitudeDisplayFamily,
     AMPS_TO_SQUARED_MAGS_SHADER,
     MAGS_TO_INDEXED_MAGS_SHADER,
     FOLD_MAX_INDEXED_MAG_SHADER,
     LOOKUP_KET_AT_INDEXED_MAG_SHADER,
     POINTWISE_CMUL_CONJ_SHADER,
     amplitudeDisplayStatTextures,
+    exactComplexText,
 };

@@ -16,7 +16,7 @@
 
 import {Config} from "../Config.js"
 import {Controls} from "./Controls.js"
-import {ketArgs, ketShaderPermute} from "./KetShaderUtil.js"
+import {ketArgs, ketShader, ketShaderPermute} from "./KetShaderUtil.js"
 import {Shaders} from "../webgl/Shaders.js"
 import {Util} from "../base/Util.js"
 import {WglArg} from "../webgl/WglArg.js"
@@ -165,6 +165,37 @@ const SWAP_QUBITS_SHADER = ketShaderPermute('', `
     float mid_bits = floor(mod(out_id, span*0.5)*0.5);
     float high_bit = floor(out_id*2.0/span);
     return high_bit + mid_bits*2.0 + low_bit*span*0.5;`);
+
+/**
+ * Renders an XX rotation between the qubit at ctx.row and another qubit below it.
+ * The shader spans the rows between the endpoints while leaving the intervening
+ * qubits unchanged.
+ *
+ * @param {!CircuitEvalContext} ctx
+ * @param {!int} otherRow
+ * @param {!Matrix} matrix
+ * @returns {!WglConfiguredShader}
+ */
+CircuitShaders.rxx = (ctx, otherRow, matrix) => {
+    let diagonal = matrix.cell(0, 0);
+    let interaction = matrix.cell(3, 0);
+    return RXX_QUBITS_SHADER.withArgs(
+        ...ketArgs(ctx, otherRow - ctx.row + 1),
+        WglArg.float('diagonal', diagonal.real),
+        WglArg.float('other_bit', 1 << (otherRow - ctx.row)),
+        WglArg.vec2('interaction', interaction.real, interaction.imag));
+};
+const RXX_QUBITS_SHADER = ketShader(
+    'uniform float diagonal;\n' +
+    'uniform float other_bit;\n' +
+    'uniform vec2 interaction;',
+    `
+        float other = mod(floor(out_id / other_bit), 2.0);
+        float flipped = out_id +
+            (1.0 - 2.0 * mod(out_id, 2.0)) +
+            (1.0 - 2.0 * other) * other_bit;
+        return cmul(amp, vec2(diagonal, 0.0)) + cmul(inp(flipped), interaction);
+    `);
 
 /**
  * Returns a configured shader that renders the marginal states of each qubit, for each possible values of the other

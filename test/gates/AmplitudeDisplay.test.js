@@ -22,6 +22,7 @@ import {
     FOLD_MAX_INDEXED_MAG_SHADER,
     LOOKUP_KET_AT_INDEXED_MAG_SHADER,
     POINTWISE_CMUL_CONJ_SHADER,
+    exactComplexText,
 } from "../../src/gates/AmplitudeDisplay.js"
 
 import {Complex} from "../../src/math/Complex.js"
@@ -35,6 +36,12 @@ import {Shaders} from "../../src/webgl/Shaders.js"
 import {currentShaderCoder} from "../../src/webgl/ShaderCoders.js"
 
 let suite = new Suite("AmplitudeDisplay");
+
+suite.test("exactComplexText", () => {
+    assertThat(exactComplexText(new Complex(1/Math.sqrt(2), 0))).isEqualTo("1/√2");
+    assertThat(exactComplexText(new Complex(-1/Math.sqrt(2), 1/2))).isEqualTo("-1/√2 + 1/2i");
+    assertThat(exactComplexText(new Complex(0, -1))).isEqualTo("-i");
+});
 
 suite.testUsingWebGL("AMPS_TO_SQUARED_MAGS_SHADER", () => {
     let input = Shaders.vec2Data(new Float32Array([

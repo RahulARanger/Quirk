@@ -32,6 +32,7 @@ import {Rect} from "../math/Rect.js"
 import {Util} from "../base/Util.js"
 import {seq, Seq} from "../base/Seq.js"
 import {paintBlochSphereDisplay} from "../gates/BlochSphereDisplay.js"
+import {Gates} from "../gates/AllGates.js"
 
 /** @type {!number} */
 let CIRCUIT_OP_HORIZONTAL_SPACING = 10;
@@ -1356,7 +1357,7 @@ class DisplayedCircuit {
 
     /**
      * @param {!Hand} hand
-     * @returns {undefined|!DisplayedCircuit}
+     * @returns {undefined|!DisplayedCircuit|!Promise.<!DisplayedCircuit>}
      */
     tryClick(hand) {
         if (hand.pos === undefined || hand.heldGate !== undefined) {
@@ -1373,13 +1374,24 @@ class DisplayedCircuit {
             return undefined;
         }
 
+        let replaceGate = newGate => {
+            if (newGate === undefined || newGate === null) {
+                return this;
+            }
+            let cols = [...this.circuitDefinition.columns];
+            let col = cols[found.col];
+            let gates = [...col.gates];
+            if (found.gate.serializedId === Gates.Special.RxxHalf.serializedId) {
+                gates = gates.map(g => g !== undefined &&
+                    g.serializedId === Gates.Special.RxxHalf.serializedId ? newGate : g);
+            } else {
+                gates.splice(found.row, 1, newGate);
+            }
+            cols.splice(found.col, 1, new GateColumn(gates));
+            return this.withCircuit(this.circuitDefinition.withColumns(cols));
+        };
         let newGate = found.gate.onClickGateFunc(found.gate);
-        let cols = [...this.circuitDefinition.columns];
-        let col = cols[found.col];
-        let gates = [...col.gates];
-        gates.splice(found.row, 1, newGate);
-        cols.splice(found.col, 1, new GateColumn(gates));
-        return this.withCircuit(this.circuitDefinition.withColumns(cols));
+        return newGate instanceof Promise ? newGate.then(replaceGate) : replaceGate(newGate);
     }
 
     /**

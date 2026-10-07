@@ -253,8 +253,15 @@ canvasDiv.addEventListener('click', ev => {
         return;
     }
     let clicked = syncArea(curInspector.withHand(curInspector.hand.withPos(pt))).tryClick();
-    if (clicked !== undefined) {
-        revision.commit(clicked.afterTidyingUp().snapshot());
+    let commit = result => {
+        if (result !== undefined) {
+            revision.commit(result.afterTidyingUp().snapshot());
+        }
+    };
+    if (clicked instanceof Promise) {
+        clicked.then(commit);
+    } else {
+        commit(clicked);
     }
 });
 

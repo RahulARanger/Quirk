@@ -693,6 +693,14 @@ suite.test("colGetEnabledSwapGate", () => {
     assertThat(c.colGetEnabledSwapGate(7)).isEqualTo([1, 2]);
 });
 
+suite.test("colGetEnabledRxxGate", () => {
+    let rxx = Gates.ParametrizedRotationGates.FormulaicRotationRxxPair;
+    let c = new CircuitDefinition(3, [
+        new GateColumn([rxx, undefined, rxx])
+    ]);
+    assertThat(c.colGetEnabledRxxGate(0)).isEqualTo([0, 2, rxx]);
+});
+
 suite.test("locHasControllableGate", () => {
     let c = circuit(`●H-M-H-X-----
                      -%-.--s------

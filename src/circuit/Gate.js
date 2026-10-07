@@ -597,7 +597,7 @@ class GateBuilder {
     }
 
     /**
-     * @param {!function(!Gate) : !Gate} gateFunc
+     * @param {!function(!Gate) : (!Gate|!Promise.<!Gate>)} gateFunc
      * @returns {!GateBuilder}
      */
     setOnClickGateFunc(gateFunc) {

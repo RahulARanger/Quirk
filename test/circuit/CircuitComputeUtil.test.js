@@ -19,8 +19,10 @@ import {CircuitDefinition} from "../../src/circuit/CircuitDefinition.js"
 import {setGateBuilderEffectToCircuit, advanceStateWithCircuit} from "../../src/circuit/CircuitComputeUtil.js"
 import {assertThatCircuitUpdateActsLikeMatrix} from "../CircuitOperationTestUtil.js"
 import {GateBuilder} from "../../src/circuit/Gate.js"
+import {GateColumn} from "../../src/circuit/GateColumn.js"
 
 import {Controls} from "../../src/circuit/Controls.js"
+import {Complex} from "../../src/math/Complex.js"
 import {Gates} from "../../src/gates/AllGates.js"
 import {Matrix} from "../../src/math/Matrix.js"
 
@@ -139,4 +141,20 @@ suite.testUsingWebGL('swap', () => {
     assertThatCircuitUpdateActsLikeMatrix(
         ctx => advanceStateWithCircuit(ctx, circ, false),
         Gates.Special.SwapHalf.knownMatrixAt(0));
+});
+
+suite.testUsingWebGL('nonAdjacentRxx', () => {
+    let rxx = Gates.ParametrizedRotationGates.FormulaicRotationRxxPair.withParam('pi');
+    let circ = new CircuitDefinition(3, [
+        new GateColumn([rxx, undefined, rxx])
+    ]);
+    let expected = Matrix.generate(8, 8, (row, col) => {
+        if (row === col) {
+            return Math.cos(Math.PI / 2);
+        }
+        return row === (col ^ 5) ? new Complex(0, -Math.sin(Math.PI / 2)) : 0;
+    });
+    assertThatCircuitUpdateActsLikeMatrix(
+        ctx => advanceStateWithCircuit(ctx, circ, false),
+        expected);
 });

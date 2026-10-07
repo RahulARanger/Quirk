@@ -158,11 +158,13 @@ class DisplayedInspector {
     }
 
     /**
-     * @returns {undefined|!DisplayedInspector}
+     * @returns {undefined|!DisplayedInspector|!Promise.<!DisplayedInspector>}
      */
     tryClick() {
+        let finish = newDisplayedCircuit =>
+            newDisplayedCircuit === undefined ? undefined : this.withDisplayedCircuit(newDisplayedCircuit);
         let newDisplayedCircuit = this.displayedCircuit.tryClick(this.hand);
-        return newDisplayedCircuit === undefined ? undefined : this.withDisplayedCircuit(newDisplayedCircuit);
+        return newDisplayedCircuit instanceof Promise ? newDisplayedCircuit.then(finish) : finish(newDisplayedCircuit);
     }
 
     /**
