@@ -68,6 +68,8 @@ class DisplayedInspector {
         this.displayedToolboxTop = this.displayedToolboxTop.withTop(0);
         this.displayedToolboxBottom = this.displayedToolboxBottom.withTop(
             this.drawArea.bottom() - this.displayedToolboxBottom.desiredHeight());
+        this.displayedCircuit = this.displayedCircuit.withAvailableHeight(
+            this.displayedToolboxBottom.top - this.displayedCircuit.top);
     }
 
     /**
@@ -317,9 +319,74 @@ class DisplayedInspector {
     }
 
     _drawHint(painter) {
-        this._drawHint_dragGatesOntoCircuit(painter);
-        this._drawHint_watchOutputsChange(painter);
-        this._drawHint_useControls(painter);
+        this._drawHint_emptyState(painter);
+    }
+
+    /**
+     * Paints a compact, theme-aware empty state instead of the original
+     * hand-drawn red annotations. The canvas hit areas and drag behavior are
+     * unchanged; this is purely an orientation layer for a new circuit.
+     *
+     * @param {!Painter} painter
+     * @private
+     */
+    _drawHint_emptyState(painter) {
+        let visibilityFactor = this._hintVisibility();
+        if (visibilityFactor <= 0) {
+            return;
+        }
+
+        let board = this.displayedCircuit;
+        let card = new Rect(86, board.top + 112, 350, 74);
+        let ctx = painter.ctx;
+        ctx.save();
+        ctx.globalAlpha *= Math.min(1, visibilityFactor);
+        ctx.beginPath();
+        if (typeof ctx.roundRect === 'function') {
+            ctx.roundRect(card.x, card.y, card.w, card.h, 10);
+        } else {
+            ctx.rect(card.x, card.y, card.w, card.h);
+        }
+        ctx.fillStyle = Config.CIRCUIT_EMPTY_CARD_COLOR;
+        ctx.fill();
+        ctx.strokeStyle = Config.CIRCUIT_EMPTY_CARD_BORDER_COLOR;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.fillStyle = Config.CIRCUIT_ACCENT_COLOR;
+        ctx.beginPath();
+        ctx.arc(card.x + 22, card.y + 25, 7, 0, Math.PI * 2);
+        ctx.fill();
+
+        painter.print(
+            'Start building your circuit',
+            card.x + 40,
+            card.y + 22,
+            'left',
+            'middle',
+            Config.DEFAULT_TEXT_COLOR,
+            'bold 13px sans-serif',
+            card.w - 52,
+            20);
+        painter.print(
+            'Drag a gate from the toolbox onto a wire.',
+            card.x + 40,
+            card.y + 48,
+            'left',
+            'middle',
+            Config.CIRCUIT_LABEL_COLOR,
+            '12px sans-serif',
+            card.w - 52,
+            20);
+
+        ctx.beginPath();
+        ctx.moveTo(card.x + 30, card.y);
+        ctx.lineTo(card.x + 30, board.top + 88);
+        ctx.strokeStyle = Config.CIRCUIT_ACCENT_COLOR;
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([3, 4]);
+        ctx.stroke();
+        ctx.restore();
     }
 
     /**

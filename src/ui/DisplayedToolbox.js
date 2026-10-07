@@ -110,11 +110,11 @@ class DisplayedToolbox {
         let dy = Math.floor(gateIndex / 2);
 
         let x = Config.TOOLBOX_MARGIN_X +
-            dx * Config.TOOLBOX_GATE_SPAN +
+            dx * Config.TOOLBOX_GATE_X_SPAN +
             groupIndex * Config.TOOLBOX_GROUP_SPAN;
         let y = this.top +
             (this.labelsOnTop ? Config.TOOLBOX_MARGIN_Y : 3) +
-            dy * Config.TOOLBOX_GATE_SPAN;
+            dy * Config.TOOLBOX_GATE_Y_SPAN;
 
         return new Rect(
             Math.round(x - 0.5) + 0.5,
@@ -131,13 +131,13 @@ class DisplayedToolbox {
     groupLabelRect(groupIndex) {
         if (this.labelsOnTop) {
             let r = this.gateDrawRect(groupIndex, 0);
-            let c = new Point(r.x + Config.TOOLBOX_GATE_SPAN - Config.TOOLBOX_GATE_SPACING / 2, r.y - 18);
-            return new Rect(c.x - Config.TOOLBOX_GATE_SPAN, c.y, Config.TOOLBOX_GATE_SPAN * 2, 20);
+            let c = new Point(r.x + Config.TOOLBOX_GATE_X_SPAN - Config.TOOLBOX_GATE_X_SPACING / 2, r.y - 18);
+            return new Rect(c.x - Config.TOOLBOX_GATE_X_SPAN, c.y, Config.TOOLBOX_GATE_X_SPAN * 2, 20);
         }
 
         let r = this.gateDrawRect(groupIndex, this.groupHeight*2 - 2);
-        let c = new Point(r.x + Config.TOOLBOX_GATE_SPAN - Config.TOOLBOX_GATE_SPACING / 2, r.bottom());
-        return new Rect(c.x - Config.TOOLBOX_GATE_SPAN, c.y+2, Config.TOOLBOX_GATE_SPAN * 2, 20);
+        let c = new Point(r.x + Config.TOOLBOX_GATE_X_SPAN - Config.TOOLBOX_GATE_X_SPACING / 2, r.bottom());
+        return new Rect(c.x - Config.TOOLBOX_GATE_X_SPAN, c.y+2, Config.TOOLBOX_GATE_X_SPAN * 2, 20);
     }
 
     /**
@@ -203,14 +203,14 @@ class DisplayedToolbox {
      * @param {!Hand} hand
      */
     paint(painter, stats, hand) {
-        painter.fillRect(this.curArea(painter.canvas.width), Config.BACKGROUND_COLOR_TOOLBOX);
+        painter.fillRect(this.curArea(painter.width), Config.BACKGROUND_COLOR_TOOLBOX);
         painter.strokeLine(
             new Point(0, this.top + 0.5),
-            new Point(painter.canvas.width, this.top + 0.5),
+            new Point(painter.width, this.top + 0.5),
             Config.TOOLBOX_DIVIDER_COLOR);
         painter.strokeLine(
             new Point(0, this.top + this.desiredHeight() - 0.5),
-            new Point(painter.canvas.width, this.top + this.desiredHeight() - 0.5),
+            new Point(painter.width, this.top + this.desiredHeight() - 0.5),
             Config.TOOLBOX_DIVIDER_COLOR);
         for (let groupIndex = 1; groupIndex < this.toolboxGroups.length; groupIndex++) {
             let x = Config.TOOLBOX_MARGIN_X + groupIndex * Config.TOOLBOX_GROUP_SPAN - Config.TOOLBOX_GROUP_SPACING / 2;
@@ -227,19 +227,45 @@ class DisplayedToolbox {
      * @param {!Painter} painter
      */
     _paintStandardContents(painter) {
+        // Treat each gate family as a small panel. The gate hit rectangles stay
+        // unchanged, so drag/drop behavior remains exactly as before.
+        for (let groupIndex = 0; groupIndex < this.toolboxGroups.length; groupIndex++) {
+            this._paintGroupPanel(painter, groupIndex);
+        }
+
         // Gates.
         for (let groupIndex = 0; groupIndex < this.toolboxGroups.length; groupIndex++) {
             this._paintGatesInGroup(painter, Hand.EMPTY, groupIndex);
         }
 
-        // Title of toolbox.
-        let r = this.curArea(Config.TOOLBOX_MARGIN_X);
-        let {x, y} = r.center();
-        painter.ctx.save();
-        painter.ctx.translate(x, y);
-        painter.ctx.rotate(-Math.PI/2);
-        painter.printLine(this.name, new Rect(-r.h / 2, -r.w / 2, r.h, r.w), 0.5, Config.DEFAULT_TEXT_COLOR, 24);
-        painter.ctx.restore();
+    }
+
+    /**
+     * @param {!Painter} painter
+     * @param {!int} groupIndex
+     * @private
+     */
+    _paintGroupPanel(painter, groupIndex) {
+        let x = Config.TOOLBOX_MARGIN_X + groupIndex * Config.TOOLBOX_GROUP_SPAN - 7;
+        let r = new Rect(
+            x,
+            this.top + 5,
+            Config.TOOLBOX_GATE_X_SPAN * 2 + 6,
+            this.desiredHeight() - 10);
+        let ctx = painter.ctx;
+        ctx.save();
+        ctx.beginPath();
+        if (typeof ctx.roundRect === 'function') {
+            ctx.roundRect(r.x, r.y, r.w, r.h, 7);
+        } else {
+            ctx.rect(r.x, r.y, r.w, r.h);
+        }
+        ctx.fillStyle = Config.TOOLBOX_GROUP_FILL_COLOR;
+        ctx.fill();
+        ctx.strokeStyle = Config.TOOLBOX_GROUP_BORDER_COLOR;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.restore();
     }
 
     /**
@@ -284,8 +310,8 @@ class DisplayedToolbox {
             r.y + r.h/2,
             'center',
             'middle',
-            Config.DEFAULT_TEXT_COLOR,
-            '12px sans-serif',
+            Config.TOOLBOX_LABEL_COLOR,
+            '600 12px sans-serif',
             r.w,
             r.h);
 
@@ -349,12 +375,26 @@ class DisplayedToolbox {
         painter.ctx.translate(-10000, -10000);
         let {maxW, maxH} = WidgetPainter.paintGateTooltip(
             painter, new Rect(0, 0, 500, 300), f.gate, stats.time, true);
-        let mayNeedToScale = maxW >= 500 || maxH >= 300;
         painter.ctx.restore();
 
         // Draw tooltip.
         let cx = f.rect.right() + 1;
-        let hintRect = new Rect(cx, f.rect.center().y, maxW, maxH).
+        // Keep short gate descriptions from collapsing into a cramped strip.
+        // The tooltip renderer uses this width for its text wrapping and matrix
+        // descriptions, so this is a visual-only change; hit testing stays on
+        // the original toolbox rectangles.
+        let availableWidth = Math.max(160, painter.paintableArea().w - 20);
+        // Long descriptions should wrap instead of producing an oversized
+        // horizontal banner. The content font is larger, so this stays both
+        // compact and readable.
+        let tooltipWidth = Math.min(Math.max(maxW, 220), 320, availableWidth);
+        let availableHeight = Math.max(180, painter.paintableArea().h - 40);
+        // Scale only when the natural tooltip cannot fit in the workspace. The
+        // old fixed 500x300 threshold scaled ordinary matrix/rotation tooltips
+        // even when there was plenty of room, making their text look blurred
+        // and trapped inside a tiny card.
+        let mayNeedToScale = maxW > availableWidth || maxH > availableHeight;
+        let hintRect = new Rect(cx, f.rect.center().y, tooltipWidth, maxH).
             snapInside(painter.paintableArea().skipRight(10).skipBottom(20));
         painter.defer(() => WidgetPainter.paintGateTooltip(painter, hintRect, f.gate, stats.time, mayNeedToScale));
     }
@@ -371,7 +411,7 @@ class DisplayedToolbox {
      * @returns {!number}
      */
     desiredHeight() {
-        return (1 + this.groupHeight) * (Config.GATE_RADIUS * 2 + 2) - Config.GATE_RADIUS;
+        return (1 + this.groupHeight) * Config.TOOLBOX_GATE_Y_SPAN - Config.GATE_RADIUS;
     }
 
     /**

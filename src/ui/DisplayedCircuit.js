@@ -50,9 +50,10 @@ class DisplayedCircuit {
      * @param {undefined|!int} compressedColumnIndex
      * @param {undefined|!{col: !int, row: undefined|!int, resizeStyle: !boolean}} highlightedSlot
      * @param {undefined|!int} extraWireStartIndex
+     * @param {undefined|!number} availableHeight
      * @private
      */
-    constructor(top, circuitDefinition, compressedColumnIndex, highlightedSlot, extraWireStartIndex) {
+    constructor(top, circuitDefinition, compressedColumnIndex, highlightedSlot, extraWireStartIndex, availableHeight=undefined) {
         if (!Number.isFinite(top)) {
             throw new DetailedError("Bad top", {top, circuitDefinition});
         }
@@ -82,6 +83,15 @@ class DisplayedCircuit {
          * @private
          */
         this._extraWireStartIndex = extraWireStartIndex;
+        /**
+         * The amount of vertical workspace available to the circuit. This is
+         * separate from the circuit's natural content height so the board can
+         * fill the space above the bottom toolbox without changing wire or
+         * gate geometry.
+         * @type {undefined|!number}
+         * @private
+         */
+        this._availableHeight = availableHeight;
     }
 
     /**
@@ -123,10 +133,12 @@ class DisplayedCircuit {
      * @returns {!number}
      */
     desiredHeight(forTooltip=false) {
-        if (forTooltip) {
-            return this.circuitDefinition.numWires * Config.WIRE_SPACING;
-        }
-        return this._groundedWireCount() * Config.WIRE_SPACING + 55 + Config.CIRCUIT_BOTTOM_PADDING;
+        let naturalHeight = forTooltip ?
+            this.circuitDefinition.numWires * Config.WIRE_SPACING :
+            this._groundedWireCount() * Config.WIRE_SPACING + 55 + Config.CIRCUIT_BOTTOM_PADDING;
+        return forTooltip || this._availableHeight === undefined ?
+            naturalHeight :
+            Math.max(naturalHeight, this._availableHeight);
     }
 
     /**
@@ -333,6 +345,7 @@ class DisplayedCircuit {
             this.circuitDefinition.isEqualTo(other.circuitDefinition) &&
             this._compressedColumnIndex === other._compressedColumnIndex &&
             this._extraWireStartIndex === other._extraWireStartIndex &&
+            this._availableHeight === other._availableHeight &&
             equate(this._highlightedSlot, other._highlightedSlot);
     }
 
@@ -374,7 +387,7 @@ class DisplayedCircuit {
     _paintCircuitSurface(painter) {
         let top = this.top;
         let bottom = top + this.desiredHeight();
-        painter.fillRect(new Rect(0, top, painter.canvas.width, bottom - top), Config.BACKGROUND_COLOR_CIRCUIT);
+        painter.fillRect(new Rect(0, top, painter.width, bottom - top), Config.BACKGROUND_COLOR_CIRCUIT);
 
         let wireCount = Math.min(this.circuitDefinition.numWires, Config.MAX_WIRE_COUNT);
         for (let row = 0; row < wireCount; row++) {
@@ -384,18 +397,18 @@ class DisplayedCircuit {
         }
 
         painter.fillRect(new Rect(0, top, 52, bottom - top), Config.CIRCUIT_GUTTER_COLOR);
-        painter.strokeLine(new Point(52.5, top), new Point(52.5, bottom), '#D7DBE1');
+        painter.strokeLine(new Point(52.5, top), new Point(52.5, bottom), Config.CIRCUIT_BORDER_COLOR);
 
         let spacing = Config.CIRCUIT_GRID_SPACING;
         painter.ctx.save();
         painter.ctx.beginPath();
-        for (let x = spacing; x < painter.canvas.width; x += spacing) {
+        for (let x = spacing; x < painter.width; x += spacing) {
             painter.ctx.moveTo(x + 0.5, top);
             painter.ctx.lineTo(x + 0.5, bottom);
         }
         for (let y = top; y < bottom; y += spacing) {
             painter.ctx.moveTo(0, y + 0.5);
-            painter.ctx.lineTo(painter.canvas.width, y + 0.5);
+            painter.ctx.lineTo(painter.width, y + 0.5);
         }
         painter.ctx.strokeStyle = Config.CIRCUIT_GRID_COLOR;
         painter.ctx.lineWidth = 1;
@@ -403,18 +416,18 @@ class DisplayedCircuit {
         painter.ctx.restore();
 
         painter.strokeRect(
-            new Rect(0.5, top + 0.5, painter.canvas.width - 1, bottom - top - 1),
-            '#D7DBE1');
+            new Rect(0.5, top + 0.5, painter.width - 1, bottom - top - 1),
+            Config.CIRCUIT_BORDER_COLOR);
         painter.print(
-            'Circuit board',
-            70,
-            bottom - 30,
-            'left',
+            'QUBITS',
+            26,
+            top + 14,
+            'center',
             'middle',
-            '#8A919B',
-            '11px sans-serif',
-            180,
-            24);
+            Config.CIRCUIT_HEADER_COLOR,
+            '600 11px sans-serif',
+            48,
+            18);
     }
 
     /**
@@ -456,7 +469,7 @@ class DisplayedCircuit {
                 let lastX = showLabels ? 25 : 5;
                 //noinspection ForLoopThatDoesntUseLoopVariableJS
                 for (let col = 0;
-                        showLabels ? lastX < painter.canvas.width : col <= this.circuitDefinition.columns.length;
+                        showLabels ? lastX < painter.width : col <= this.circuitDefinition.columns.length;
                         col++) {
                     let x = this.opRect(col).center().x;
                     if (this.circuitDefinition.locIsMeasured(new Point(col, row))) {
@@ -940,7 +953,8 @@ class DisplayedCircuit {
             circuitDefinition,
             this._compressedColumnIndex,
             this._highlightedSlot,
-            this._extraWireStartIndex);
+            this._extraWireStartIndex,
+            this._availableHeight);
     }
 
     /**
@@ -954,7 +968,8 @@ class DisplayedCircuit {
             this.circuitDefinition,
             compressedColumnIndex,
             this._highlightedSlot,
-            this._extraWireStartIndex);
+            this._extraWireStartIndex,
+            this._availableHeight);
     }
 
     /**
@@ -968,7 +983,8 @@ class DisplayedCircuit {
             this.circuitDefinition,
             this._compressedColumnIndex,
             slot,
-            this._extraWireStartIndex);
+            this._extraWireStartIndex,
+            this._availableHeight);
     }
 
     /**
@@ -982,7 +998,22 @@ class DisplayedCircuit {
             this.circuitDefinition,
             this._compressedColumnIndex,
             this._highlightedSlot,
-            extraWireStartIndex);
+            extraWireStartIndex,
+            this._availableHeight);
+    }
+
+    /**
+     * @param {!number} availableHeight
+     * @returns {!DisplayedCircuit}
+     */
+    withAvailableHeight(availableHeight) {
+        return new DisplayedCircuit(
+            this.top,
+            this.circuitDefinition,
+            this._compressedColumnIndex,
+            this._highlightedSlot,
+            this._extraWireStartIndex,
+            availableHeight);
     }
 
     /**
@@ -1251,7 +1282,8 @@ class DisplayedCircuit {
                 this.circuitDefinition.withColumns(newCols),
                 undefined,
                 undefined,
-                this._extraWireStartIndex),
+                this._extraWireStartIndex,
+                this._availableHeight),
             newHand: hand.withHeldGate(gate, offset)
         };
     }
@@ -1669,7 +1701,7 @@ function _drawLabelsReasonablyFast(painter, dy, n, labeller, boundingWidth) {
     let pad = 1/scale;
     ctx.scale(scale, scale);
     ctx.translate(0, dy*0.5/scale - h*0.5);
-    ctx.fillStyle = 'lightgray';
+    ctx.fillStyle = Config.CIRCUIT_GUTTER_COLOR;
     if (h < step*0.95) {
         for (let i = 0; i < n; i++) {
             ctx.fillRect(0, step*i, w + 2*pad, h);
@@ -1697,7 +1729,7 @@ let _cachedRowLabelDrawer = new CachablePainting(
         //noinspection JSCheckFunctionSignatures
         _drawLabelsReasonablyFast(
             painter,
-            painter.canvas.height / rowCount,
+            painter.height / rowCount,
             rowCount,
             i => Util.bin(i, rowWires) + suffix,
             SUPERPOSITION_GRID_LABEL_SPAN);
@@ -1717,7 +1749,7 @@ let _cachedColLabelDrawer = new CachablePainting(
     (painter, numWire) => {
         let [colWires, rowWires] = [Math.floor(numWire/2), Math.ceil(numWire/2)];
         let colCount = 1 << colWires;
-        let dw = painter.canvas.width / colCount;
+        let dw = painter.width / colCount;
 
         painter.ctx.translate(colCount*dw, 0);
         painter.ctx.rotate(Math.PI/2);

@@ -21,16 +21,63 @@ import {RestartableRng} from "../base/RestartableRng.js"
 import {seq, Seq} from "../base/Seq.js"
 import {Util} from "../base/Util.js"
 
+function themeColor(color) {
+    if (Config.ACTIVE_THEME !== 'dark') {
+        return color;
+    }
+    if (color === 'black') {
+        return Config.DEFAULT_STROKE_COLOR;
+    }
+    if (color === 'white') {
+        return Config.DEFAULT_FILL_COLOR;
+    }
+    if (color === 'lightgray') {
+        return '#687381';
+    }
+    if (color === 'gray') {
+        return '#AAB3BF';
+    }
+    if (color === '#EEE' || color === '#EEEFF0' || color === '#FFFFFF' || color === '#FFF') {
+        return Config.DEFAULT_FILL_COLOR;
+    }
+    if (color === '#CCC' || color === '#CCCCCC') {
+        return '#687381';
+    }
+    if (color === '#D7DBE1') {
+        return '#46515E';
+    }
+    if (color === '#8A919B') {
+        return '#9BA6B3';
+    }
+    if (color === '#BBB' || color === '#BBBBBB') {
+        return '#66717F';
+    }
+    if (color === '#DDD' || color === '#DDDDDD' || color === '#F3F3F3') {
+        return Config.GATE_FILL_COLOR;
+    }
+    return color;
+}
+
 class Painter {
     /**
      * @param {!HTMLCanvasElement} canvas
      * @param {!RestartableRng=} rng
      */
-    constructor(canvas, rng = new RestartableRng()) {
+    constructor(canvas, rng = new RestartableRng(), logicalWidth=undefined, logicalHeight=undefined) {
         /** @type {!HTMLCanvasElement} */
         this.canvas = canvas;
         /** @type {!CanvasRenderingContext2D} */
         this.ctx = canvas.getContext("2d");
+        /** @type {!number} */
+        this.pixelRatio = logicalWidth === undefined || logicalHeight === undefined ?
+            1 : Math.max(1, (typeof window === 'undefined' ? 1 : window.devicePixelRatio || 1));
+        /** @type {!number} */
+        this.width = logicalWidth === undefined ? canvas.width : logicalWidth;
+        /** @type {!number} */
+        this.height = logicalHeight === undefined ? canvas.height : logicalHeight;
+        if (this.pixelRatio !== 1) {
+            this.ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+        }
         /**
          * @type {!Array.<!function()>}
          * @private
@@ -104,15 +151,15 @@ class Painter {
      * @returns {!Rect}
      */
     paintableArea() {
-        return new Rect(0, 0, this.canvas.width, this.canvas.height);
+        return new Rect(0, 0, this.width, this.height);
     }
 
     /**
      * @param {!string=} color
      */
     clear(color = Config.DEFAULT_FILL_COLOR) {
-        this.ctx.fillStyle = color;
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+        this.ctx.fillStyle = themeColor(color);
+        this.ctx.fillRect(0, 0, this.width, this.height);
     }
 
     /**
@@ -127,7 +174,7 @@ class Painter {
         this.ctx.beginPath();
         this.ctx.moveTo(p1.x, p1.y);
         this.ctx.lineTo(p2.x, p2.y);
-        this.ctx.strokeStyle = color;
+        this.ctx.strokeStyle = themeColor(color);
         this.ctx.lineWidth = thickness;
         this.ctx.stroke();
     }
@@ -138,8 +185,8 @@ class Painter {
      * @param {!string=} color The stroke color.
      * @param {!number=} thickness The stroke thickness.
      */
-    strokeRect(rect, color = "black", thickness = 1) {
-        this.ctx.strokeStyle = color;
+    strokeRect(rect, color = Config.DEFAULT_STROKE_COLOR, thickness = 1) {
+        this.ctx.strokeStyle = themeColor(color);
         this.ctx.lineWidth = thickness;
         this.ctx.strokeRect(rect.x, rect.y, rect.w, rect.h);
     }
@@ -150,7 +197,7 @@ class Painter {
      * @param {!string=} color The fill color.
      */
     fillRect(rect, color = Config.DEFAULT_FILL_COLOR) {
-        this.ctx.fillStyle = color;
+        this.ctx.fillStyle = themeColor(color);
         this.ctx.fillRect(rect.x, rect.y, rect.w, rect.h);
     }
 
@@ -163,7 +210,7 @@ class Painter {
      */
     strokeCircle(center, radius, color = Config.DEFAULT_STROKE_COLOR, thickness = Config.DEFAULT_STROKE_THICKNESS) {
         this.ctx.beginPath();
-        this.ctx.strokeStyle = color;
+        this.ctx.strokeStyle = themeColor(color);
         this.ctx.lineWidth = thickness;
         this.ctx.arc(center.x, center.y, Math.max(radius - 0.5, 0), 0, 2 * Math.PI);
         this.ctx.stroke();
@@ -188,7 +235,7 @@ class Painter {
     fillCircle(center, radius, color = Config.DEFAULT_FILL_COLOR) {
         this.ctx.beginPath();
         this.ctx.arc(center.x, center.y, Math.max(radius - 0.5, 0), 0, 2 * Math.PI);
-        this.ctx.fillStyle = color;
+        this.ctx.fillStyle = themeColor(color);
         this.ctx.fill();
     }
 
@@ -231,7 +278,7 @@ class Painter {
         this.ctx.textAlign = textAlign;
         this.ctx.textBaseline = textBaseline;
         this.ctx.font = font; // Re-set the font, because the 'afterMeasureBeforeDraw' callback may have changed it.
-        this.ctx.fillStyle = fillStyle;
+        this.ctx.fillStyle = themeColor(fillStyle);
         this.ctx.translate(x, y);
         this.ctx.scale(scale, scale);
         if (alsoStroke) {
@@ -293,7 +340,7 @@ class Painter {
         let fy = h => f(area.y, area.h, h, proportionalCenterOfAlignment.y);
         let y = fy(height);
 
-        this.ctx.fillStyle = fontColor;
+        this.ctx.fillStyle = themeColor(fontColor);
 
         let dy = 0;
         for (let i = 0; i < lines.length; i++) {
@@ -355,7 +402,7 @@ class Painter {
         let x = f(area.x, area.w, measure.width, proportionalCenterOfHorizontalAlignment);
         let y = f(area.y, area.h, h, py);
 
-        this.ctx.fillStyle = fontColor;
+        this.ctx.fillStyle = themeColor(fontColor);
         this.ctx.fillText(text, x, y + ascendingHeightOf(measure));
 
         return new Rect(x, y, measure.width, h);
@@ -381,7 +428,7 @@ class Painter {
             this.ctx.lineTo(p.x, p.y);
         }
 
-        this.ctx.strokeStyle = strokeColor;
+        this.ctx.strokeStyle = themeColor(strokeColor);
         this.ctx.lineWidth = strokeThickness;
         this.ctx.stroke();
     }
@@ -405,7 +452,7 @@ class Painter {
             this.ctx.lineTo(p.x, p.y);
         }
 
-        this.ctx.strokeStyle = strokeColor;
+        this.ctx.strokeStyle = themeColor(strokeColor);
         this.ctx.lineWidth = strokeThickness;
         this.ctx.stroke();
     }
@@ -424,7 +471,7 @@ class Painter {
             this.ctx.lineTo(p.x, p.y);
         }
 
-        this.ctx.fillStyle = fillColor;
+        this.ctx.fillStyle = themeColor(fillColor);
         this.ctx.fill();
     }
 }
@@ -564,7 +611,7 @@ class TraceAction {
      * @returns {!TraceAction}
      */
     thenFill(fillStyle) {
-        this.ctx.fillStyle = fillStyle;
+        this.ctx.fillStyle = themeColor(fillStyle);
         this.ctx.fill();
         return this;
     }
@@ -575,11 +622,11 @@ class TraceAction {
      * @returns {!TraceAction}
      */
     thenStroke(strokeStyle, lineWidth = 1) {
-        this.ctx.strokeStyle = strokeStyle;
+        this.ctx.strokeStyle = themeColor(strokeStyle);
         this.ctx.lineWidth = lineWidth;
         this.ctx.stroke();
         return this;
     }
 }
 
-export {Painter}
+export {Painter, themeColor}

@@ -13,6 +13,8 @@
         --app-accent-soft: rgba(245, 158, 11, 0.16);
         --app-danger: #f28b8b;
         --app-shadow: 0 16px 36px rgba(0, 0, 0, 0.22);
+        --canvas-bg: #1b2026;
+        --canvas-edge: #3b434f;
     }
 
     :root[data-theme="light"] {
@@ -29,6 +31,8 @@
         --app-accent-soft: rgba(217, 119, 6, 0.13);
         --app-danger: #c64d4d;
         --app-shadow: 0 16px 36px rgba(34, 42, 52, 0.12);
+        --canvas-bg: #f7f8fa;
+        --canvas-edge: #d7dbe1;
     }
 
     * { box-sizing: border-box; }
@@ -77,6 +81,7 @@
         border-left: 1px solid var(--app-border);
         color: var(--app-text);
     }
+    .toolbar-header-actions { display: flex; align-items: center; gap: 8px; min-width: 0; margin-left: auto; }
     .document-dot, .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--app-accent); }
     .toolbar-actions { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
     .toolbar-button {
@@ -90,12 +95,12 @@
         transition: color 120ms ease, background 120ms ease, border-color 120ms ease;
     }
     .toolbar-button:hover { color: var(--app-text); background: var(--app-surface-hover); border-color: var(--app-border); }
-    .toolbar-button-accent { color: var(--app-text); background: var(--app-accent-soft); border-color: rgba(79, 141, 247, 0.38); }
+    .toolbar-button-accent { color: var(--app-text); background: var(--app-accent-soft); border-color: rgba(245, 158, 11, 0.38); }
     .toolbar-button-danger { color: var(--app-danger); }
-    .app-meta { display: flex; align-items: center; gap: 6px; margin-left: auto; color: var(--app-subtle); font-size: 11px; white-space: nowrap; }
+    .app-meta { display: flex; align-items: center; gap: 6px; color: var(--app-subtle); font-size: 11px; white-space: nowrap; }
     .status-dot { width: 6px; height: 6px; background: #55c58a; }
 
-    .workspace-layout { display: grid; grid-template-columns: 164px minmax(0, 1fr); min-height: calc(100vh - 44px); }
+    .workspace-layout { display: grid; grid-template-columns: 164px minmax(0, 1fr); height: calc(100vh - 44px); min-height: 0; }
     .workspace-rail {
         display: flex;
         flex-direction: column;
@@ -104,33 +109,89 @@
         border-right: 1px solid var(--app-border-soft);
         background: var(--app-surface);
     }
-    .rail-heading { margin: 0 8px 6px; color: var(--app-subtle); font-size: 10px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; }
-    .rail-item { display: flex; align-items: center; gap: 8px; min-height: 28px; padding: 0 8px; border: 1px solid transparent; border-radius: 5px; color: var(--app-muted); }
-    .rail-item-active { color: var(--app-text); background: var(--app-accent-soft); border-color: rgba(79, 141, 247, 0.24); }
+    .rail-header { display: flex; align-items: center; justify-content: space-between; gap: 4px; min-height: 24px; padding: 0 2px; }
+    .rail-heading { margin: 0 6px; color: var(--app-subtle); font-size: 10px; font-weight: 700; letter-spacing: 0.09em; text-transform: uppercase; }
+    .rail-toggle { display: inline-grid; place-items: center; flex: 0 0 22px; width: 22px; height: 22px; margin: 0 3px 0 0; padding: 0; border: 1px solid var(--app-border-soft); border-radius: 5px; color: var(--app-muted); background: transparent; cursor: pointer; }
+    .rail-toggle-icon { width: 7px; height: 7px; border-right: 1.5px solid currentColor; border-bottom: 1.5px solid currentColor; transform: translateX(-1px) rotate(135deg); transition: transform 180ms ease, color 140ms ease; }
+    .rail-toggle:hover { color: var(--app-text); border-color: var(--app-border); background: var(--app-accent-soft); }
+    .rail-item { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 28px; padding: 0 8px; border: 1px solid transparent; border-radius: 5px; color: var(--app-muted); background: transparent; font: inherit; text-align: left; cursor: pointer; transition: color 120ms ease, background 120ms ease, border-color 120ms ease; }
+    .rail-item:hover { color: var(--app-text); background: var(--app-surface-hover); border-color: var(--app-border); }
+    .rail-item-active { color: var(--app-text); background: var(--app-accent-soft); border-color: rgba(245, 158, 11, 0.24); }
+    .rail-item-active:hover { background: var(--app-accent-soft); border-color: rgba(245, 158, 11, 0.42); }
     .rail-icon { display: inline-grid; place-items: center; width: 17px; color: var(--app-subtle); font-size: 15px; }
     .rail-item-active .rail-icon { color: var(--app-accent); }
     .rail-rule { height: 1px; margin: 13px 8px; background: var(--app-border-soft); }
     .rail-note { margin: 2px 8px; color: var(--app-subtle); font-size: 11px; line-height: 1.55; }
     .rail-footer { margin-top: auto; padding: 12px 8px 0; border-top: 1px solid var(--app-border-soft); color: var(--app-subtle); font-size: 10px; line-height: 1.5; }
-    .workspace-main { min-width: 0; padding: 10px 12px 16px; background: var(--app-bg); }
-    .canvas-header { display: flex; align-items: center; justify-content: space-between; min-height: 28px; padding: 0 2px 6px; }
-    .canvas-title { display: flex; align-items: center; gap: 8px; color: var(--app-text); font-size: 12px; font-weight: 650; }
-    .canvas-title-mark { width: 20px; height: 20px; border-radius: 4px; font-size: 11px; }
-    .canvas-meta { color: var(--app-subtle); font-size: 11px; }
-    .canvas-meta span { padding: 0 5px; color: var(--app-border); }
+    .workspace-main { display: grid; grid-template-rows: minmax(0, 1fr); min-width: 0; min-height: 0; overflow: hidden; padding: 10px 12px 12px; background: var(--app-bg); }
     #canvasDiv {
         width: 100%;
-        min-height: calc(100vh - 82px);
+        min-height: 0;
+        height: 100%;
         overflow: auto;
         touch-action: manipulation;
         tab-index: 0;
         position: relative;
-        border: 1px solid var(--app-border);
+        border: 1px solid var(--canvas-edge);
         border-radius: 8px;
-        background: #f7f8fa;
+        background: var(--canvas-bg);
         box-shadow: var(--app-shadow);
     }
     #drawCanvas { display: block; }
+    #inspectorDiv.workspace-rail-collapsed .workspace-layout { grid-template-columns: 48px minmax(0, 1fr); }
+    #inspectorDiv.workspace-rail-collapsed .workspace-rail { align-items: center; padding-inline: 7px; }
+    #inspectorDiv.workspace-rail-collapsed .rail-header { width: 34px; justify-content: center; }
+    #inspectorDiv.workspace-rail-collapsed .rail-heading,
+    #inspectorDiv.workspace-rail-collapsed .rail-item span:not(.rail-icon),
+    #inspectorDiv.workspace-rail-collapsed .rail-note,
+    #inspectorDiv.workspace-rail-collapsed .rail-footer { display: none; }
+    #inspectorDiv.workspace-rail-collapsed .rail-toggle { margin: 0; }
+    #inspectorDiv.workspace-rail-collapsed .rail-toggle-icon { transform: translateX(1px) rotate(-45deg); }
+    #inspectorDiv.workspace-rail-collapsed .rail-item { width: 34px; justify-content: center; padding: 0; }
+    #inspectorDiv.workspace-rail-collapsed .rail-rule { width: 26px; margin-inline: 0; }
+    .workspace-command-bar {
+        display: flex;
+        align-items: center;
+        width: max-content;
+        flex: 0 0 auto;
+        min-height: 32px;
+        padding: 2px 3px;
+        border: 1px solid var(--app-border);
+        border-radius: 7px;
+        background: var(--app-surface);
+        background: color-mix(in srgb, var(--app-surface) 94%, transparent);
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
+        backdrop-filter: blur(12px);
+    }
+    .workspace-command-bar .toolbar-actions { flex-wrap: nowrap; }
+
+    .forge-layer { position: fixed; inset: 0; z-index: 1001; }
+    .forge-overlay { position: absolute; inset: 0; background: rgba(7, 10, 14, 0.78); backdrop-filter: blur(3px); }
+    .forge-dialog { position: relative; z-index: 1; width: min(1120px, calc(100vw - 32px)); max-height: calc(100vh - 32px); margin: 16px auto; overflow: auto; padding: 22px; color: var(--app-text); background: var(--app-surface); border: 1px solid var(--app-border); border-radius: 12px; box-shadow: 0 24px 64px rgba(0, 0, 0, 0.42); }
+    .forge-dialog-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 18px; }
+    .forge-dialog-kicker { color: var(--app-accent); font-size: 10px; font-weight: 750; letter-spacing: 0.12em; }
+    .forge-dialog h2 { margin: 4px 0 5px; color: var(--app-text); font-size: 20px; letter-spacing: -0.02em; }
+    .forge-dialog-header p { margin: 0; color: var(--app-muted); font-size: 12px; line-height: 1.45; }
+    .forge-close-button { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 1px solid var(--app-border); border-radius: 6px; color: var(--app-muted); background: transparent; font-size: 22px; line-height: 1; cursor: pointer; }
+    .forge-close-button:hover { color: var(--app-text); background: var(--app-surface-hover); }
+    .forge-table { width: 100%; table-layout: fixed; border-spacing: 8px; }
+    .forge-table th { padding: 9px 10px; color: var(--app-text); background: var(--app-surface-raised); border: 1px solid var(--app-border-soft); border-radius: 7px; font-size: 12px; font-weight: 700; text-align: left; }
+    .forge-table td { padding: 12px; color: var(--app-muted); background: var(--app-surface-raised); border: 1px solid var(--app-border-soft); border-radius: 8px; vertical-align: top; line-height: 1.55; }
+    .forge-table td:empty { padding: 0; background: transparent; border: 0; }
+    .forge-input { min-height: 28px; margin: 4px 0; padding: 4px 7px; border: 1px solid var(--app-border); border-radius: 5px; color: var(--app-text); background: var(--app-bg); font: inherit; }
+    .forge-input:focus { outline: 2px solid var(--app-accent); outline-offset: 1px; border-color: var(--app-accent); }
+    .forge-input::placeholder { color: var(--app-subtle); }
+    .forge-table label { display: block; color: var(--app-muted); font-size: 11px; font-weight: 650; }
+    .forge-field-label { display: block; margin-bottom: 5px; color: var(--app-text); font-size: 11px; font-weight: 700; }
+    .forge-textarea { display: block; width: 100%; min-height: 88px; resize: vertical; }
+    .forge-checkbox-label { display: inline-block !important; margin-left: 4px; font-weight: 500 !important; vertical-align: middle; }
+    .forge-name-label { display: flex !important; align-items: center; gap: 7px; margin-top: 2px; }
+    .forge-name-input { width: 8.5em; }
+    .forge-preview-canvas { display: block; width: 100%; height: 100px; margin-top: 10px; border: 1px solid var(--app-border); border-radius: 5px; background: var(--canvas-bg); }
+    .forge-create-button { width: 100%; min-height: 32px; margin-top: 4px; padding: 5px 8px; border: 1px solid rgba(245, 158, 11, 0.42); border-radius: 6px; color: #fff; background: var(--app-accent); font-weight: 650; cursor: pointer; }
+    .forge-create-button:hover:not(:disabled) { filter: brightness(1.08); }
+    .forge-create-button:disabled { color: var(--app-subtle); background: var(--app-border-soft); border-color: var(--app-border); cursor: not-allowed; }
+    .forge-table td > strong { color: var(--app-text); }
 
     #menu-div { position: fixed; inset: 0; z-index: 1000; overflow: auto; padding: clamp(18px, 4vw, 56px); background: rgba(30, 32, 35, 0.86); }
     #menu-overlay { position: absolute; inset: 0; background: rgba(0, 0, 0, 0.18); }
@@ -163,8 +224,10 @@
         .toolbar-brand { min-width: 0; }
         .toolbar-document { display: none; }
         .app-meta { display: none; }
+        .toolbar-header-actions { overflow-x: auto; }
         .workspace-layout { grid-template-columns: 48px minmax(0, 1fr); }
         .workspace-rail { align-items: center; padding-inline: 7px; }
+        .rail-header { width: 34px; justify-content: center; }
         .rail-heading, .rail-item span:not(.rail-icon), .rail-note, .rail-footer { display: none; }
         .rail-item { width: 34px; justify-content: center; padding: 0; }
         .rail-rule { width: 26px; margin-inline: 0; }
@@ -176,10 +239,13 @@
         .toolbar-actions { gap: 2px; }
         .toolbar-button { min-height: 26px; padding: 3px 6px; font-size: 11px; }
         .toolbar-button-danger { display: none; }
-        .workspace-main { padding: 9px 8px 15px; }
-        #canvasDiv { min-height: calc(100vh - 74px); border-radius: 6px; }
-        .canvas-header { min-height: 28px; padding-bottom: 6px; }
-        .canvas-meta { display: none; }
+        .toolbar-header-actions { flex: 0 0 auto; max-width: calc(100vw - 86px); }
+        .workspace-main { padding: 9px 8px 9px; }
+        #canvasDiv { border-radius: 6px; }
+        .workspace-command-bar .toolbar-actions { min-width: max-content; }
+        .forge-dialog { width: calc(100vw - 20px); margin: 10px auto; padding: 14px; }
+        .forge-dialog-header { margin-bottom: 10px; }
+        .forge-table { min-width: 850px; }
         #menu-div { padding: 10px; }
         .menu-shell { grid-template-columns: 1fr; }
         .menu-card { padding: 22px; }

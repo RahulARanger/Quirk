@@ -15,6 +15,7 @@
  */
 
 import {ObservableValue} from "../base/Obs.js"
+import {Config} from "../Config.js"
 
 const menuIsVisible = new ObservableValue(true);
 const obsMenuIsShowing = menuIsVisible.observable().whenDifferent();
@@ -34,7 +35,9 @@ function initThemeToggle() {
 
     const applyTheme = theme => {
         const isDark = theme === 'dark';
+        Config.applyTheme(isDark ? 'dark' : 'light');
         document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+        window.dispatchEvent(new Event('quirk-theme-change'));
         themeToggle.textContent = isDark ? 'Use light mode' : 'Use dark mode';
         themeToggle.setAttribute('aria-pressed', String(isDark));
         themeToggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');

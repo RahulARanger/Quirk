@@ -16,6 +16,7 @@
 
 import {Painter} from "./Painter.js"
 import {RestartableRng} from "../base/RestartableRng.js"
+import {Config} from "../Config.js"
 
 const fixedRng = new RestartableRng();
 
@@ -40,6 +41,8 @@ class CachablePainting {
          * @private
          */
         this._cachedCanvases = new Map();
+        /** @type {!string} */
+        this._cachedTheme = Config.ACTIVE_THEME;
     }
 
     /**
@@ -49,15 +52,22 @@ class CachablePainting {
      * @param {!*=} key
      */
     paint(x, y, painter, key=undefined) {
+        if (this._cachedTheme !== Config.ACTIVE_THEME) {
+            this._cachedCanvases.clear();
+            this._cachedTheme = Config.ACTIVE_THEME;
+        }
         if (!this._cachedCanvases.has(key)) {
             let canvas = /** @type {!HTMLCanvasElement} */ document.createElement('canvas');
             let {width, height} = this.sizeFunc(key);
-            canvas.width = width;
-            canvas.height = height;
-            this._drawingFunc(new Painter(canvas, fixedRng.restarted()), key);
+            let pixelRatio = Math.max(1, typeof window === 'undefined' ? 1 : window.devicePixelRatio || 1);
+            canvas.width = Math.round(width * pixelRatio);
+            canvas.height = Math.round(height * pixelRatio);
+            this._drawingFunc(new Painter(canvas, fixedRng.restarted(), width, height), key);
             this._cachedCanvases.set(key, canvas);
         }
-        painter.ctx.drawImage(this._cachedCanvases.get(key), x, y);
+        let canvas = this._cachedCanvases.get(key);
+        let {width, height} = this.sizeFunc(key);
+        painter.ctx.drawImage(canvas, x, y, width, height);
     }
 }
 

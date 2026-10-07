@@ -25,35 +25,38 @@
                     <span class="document-dot" aria-hidden="true"></span>
                     <span>Circuit 1</span>
                 </div>
-                <div class="toolbar-actions">
+                <div class="toolbar-header-actions">
                     <button id="menu-button" class="toolbar-button toolbar-button-accent" type="button">Menu</button>
-                    <button id="export-button" class="toolbar-button" type="button">Export</button>
-                    <button id="clear-circuit-button" class="toolbar-button toolbar-button-danger" type="button">Clear Circuit</button>
-                    <button id="clear-all-button" class="toolbar-button toolbar-button-danger" type="button">Clear ALL</button>
-                    <button id="undo-button" class="toolbar-button" type="button">Undo</button>
-                    <button id="redo-button" class="toolbar-button" type="button">Redo</button>
-                    <button id="gate-forge-button" class="toolbar-button" type="button">Make Gate</button>
+                    <div class="workspace-command-bar" aria-label="Circuit actions">
+                        <div class="toolbar-actions">
+                            <button id="export-button" class="toolbar-button" type="button">Export</button>
+                            <button id="clear-circuit-button" class="toolbar-button toolbar-button-danger" type="button">Clear Circuit</button>
+                            <button id="clear-all-button" class="toolbar-button toolbar-button-danger" type="button">Clear ALL</button>
+                            <button id="undo-button" class="toolbar-button" type="button">Undo</button>
+                            <button id="redo-button" class="toolbar-button" type="button">Redo</button>
+                            <button id="gate-forge-button" class="toolbar-button" type="button">Make Gate</button>
+                        </div>
+                    </div>
                 </div>
                 <span class="app-meta">v2.3 <span class="status-dot" aria-hidden="true"></span> Ready</span>
             </header>
 
             <!-- Circuit drawing area -->
             <div class="workspace-layout">
-                <aside class="workspace-rail" aria-label="Workspace sections">
-                    <div class="rail-heading">Workspace</div>
-                    <div class="rail-item rail-item-active"><span class="rail-icon">▦</span><span>Circuit</span></div>
-                    <div class="rail-item"><span class="rail-icon">⌘</span><span>Toolbox</span></div>
-                    <div class="rail-item"><span class="rail-icon">◇</span><span>Examples</span></div>
+                <aside id="workspace-rail" class="workspace-rail" aria-label="Workspace sections">
+                    <div class="rail-header">
+                        <div class="rail-heading">Workspace</div>
+                        <button id="workspace-rail-toggle" class="rail-toggle" type="button" aria-expanded="true" aria-controls="workspace-rail" aria-label="Collapse workspace rail" title="Collapse workspace rail"><span class="rail-toggle-icon" aria-hidden="true"></span></button>
+                    </div>
+                    <button class="rail-item rail-item-active" type="button" data-workspace-target="circuit" aria-current="page"><span class="rail-icon">▦</span><span>Circuit</span></button>
+                    <button class="rail-item" type="button" data-workspace-target="toolbox"><span class="rail-icon">⌘</span><span>Toolbox</span></button>
+                    <button class="rail-item" type="button" data-workspace-target="examples"><span class="rail-icon">◇</span><span>Examples</span></button>
                     <div class="rail-rule"></div>
                     <div class="rail-heading">Context</div>
                     <div class="rail-note">Drag a gate from the canvas toolbox onto a wire to edit the circuit.</div>
                     <div class="rail-footer">Forked for academic<br>and research use</div>
                 </aside>
                 <main class="workspace-main">
-                    <div class="canvas-header">
-                        <div class="canvas-title"><span class="canvas-title-mark">Q</span><span>Quantum circuit</span></div>
-                        <div class="canvas-meta">Editable workspace <span>·</span> drag and drop</div>
-                    </div>
                     <div id="canvasDiv" style="width: 100%; touch-action: manipulation; tab-index: 0; position: relative;">
                         <canvas id="drawCanvas"></canvas>
                     </div>

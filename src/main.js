@@ -55,6 +55,78 @@ initSerializer(
 
 const canvasDiv = document.getElementById("canvasDiv");
 
+const WORKSPACE_RAIL_STORAGE_KEY = 'quirk-workspace-rail-collapsed';
+
+function initWorkspaceRail() {
+    const inspectorDiv = document.getElementById('inspectorDiv');
+    const railToggle = document.getElementById('workspace-rail-toggle');
+    if (!inspectorDiv || !railToggle) {
+        return;
+    }
+
+    let isCollapsed = false;
+    try {
+        isCollapsed = window.localStorage.getItem(WORKSPACE_RAIL_STORAGE_KEY) === 'true';
+    } catch (e) {
+        // Storage can be unavailable in private or restricted browsing contexts.
+    }
+
+    const applyRailState = collapsed => {
+        isCollapsed = collapsed;
+        inspectorDiv.classList.toggle('workspace-rail-collapsed', collapsed);
+        railToggle.setAttribute('aria-expanded', String(!collapsed));
+        railToggle.setAttribute('aria-label', collapsed ? 'Expand workspace rail' : 'Collapse workspace rail');
+        railToggle.title = collapsed ? 'Expand workspace rail' : 'Collapse workspace rail';
+        window.dispatchEvent(new Event('resize'));
+    };
+
+    applyRailState(isCollapsed);
+    railToggle.addEventListener('click', () => {
+        applyRailState(!isCollapsed);
+        try {
+            window.localStorage.setItem(WORKSPACE_RAIL_STORAGE_KEY, String(isCollapsed));
+        } catch (e) {
+            // Keep the current rail state for this session when storage is unavailable.
+        }
+    });
+}
+
+initWorkspaceRail();
+
+function initWorkspaceNavigation() {
+    const items = Array.from(document.querySelectorAll('[data-workspace-target]'));
+    const setActive = target => {
+        for (let item of items) {
+            const isActive = item.getAttribute('data-workspace-target') === target;
+            item.classList.toggle('rail-item-active', isActive);
+            if (isActive) {
+                item.setAttribute('aria-current', 'page');
+            } else {
+                item.removeAttribute('aria-current');
+            }
+        }
+    };
+
+    for (let item of items) {
+        item.addEventListener('click', () => {
+            const target = item.getAttribute('data-workspace-target');
+            setActive(target);
+            if (target === 'examples') {
+                document.getElementById('menu-button').click();
+                return;
+            }
+
+            canvasDiv.focus({preventScroll: true});
+            canvasDiv.scrollTo({
+                top: target === 'toolbox' ? canvasDiv.scrollHeight : 0,
+                behavior: 'smooth'
+            });
+        });
+    }
+}
+
+initWorkspaceNavigation();
+
 //noinspection JSValidateTypes
 /** @type {!HTMLCanvasElement} */
 const canvas = document.getElementById("drawCanvas");
@@ -101,7 +173,10 @@ revision.latestActiveCommit().subscribe(jsonText => {
 let desiredCanvasSizeFor = curInspector => {
     return {
         w: Math.max(canvasDiv.clientWidth, curInspector.desiredWidth()),
-        h: curInspector.desiredHeight()
+        // Let the canvas fill the viewport so the lower toolbox is anchored
+        // at the actual bottom of the workspace instead of ending early and
+        // leaving an empty strip underneath it.
+        h: Math.max(canvasDiv.clientHeight, curInspector.desiredHeight())
     };
 };
 
@@ -144,9 +219,12 @@ const redrawNow = () => {
     mostRecentStats.set(stats);
 
     let size = desiredCanvasSizeFor(shown);
-    canvas.width = size.w;
-    canvas.height = size.h;
-    let painter = new Painter(canvas, semiStableRng.cur.restarted());
+    let pixelRatio = Math.max(1, window.devicePixelRatio || 1);
+    canvas.width = Math.round(size.w * pixelRatio);
+    canvas.height = Math.round(size.h * pixelRatio);
+    canvas.style.width = `${size.w}px`;
+    canvas.style.height = `${size.h}px`;
+    let painter = new Painter(canvas, semiStableRng.cur.restarted(), size.w, size.h);
     shown.updateArea(painter.paintableArea());
     shown.paint(painter, stats);
     painter.paintDeferred();
@@ -163,6 +241,7 @@ const redrawNow = () => {
 
 redrawThrottle = new CooldownThrottle(redrawNow, Config.REDRAW_COOLDOWN_MILLIS, 0.1, true);
 window.addEventListener('resize', () => redrawThrottle.trigger(), false);
+window.addEventListener('quirk-theme-change', () => redrawThrottle.trigger(), false);
 displayed.observable().subscribe(() => redrawThrottle.trigger());
 
 /** @type {undefined|!string} */

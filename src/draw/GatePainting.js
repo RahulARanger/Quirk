@@ -17,6 +17,7 @@
 import {Config} from "../Config.js"
 import {GateDrawParams} from "./GateDrawParams.js"
 import {MathPainter} from "./MathPainter.js"
+import {themeColor} from "./Painter.js"
 import {Point} from "../math/Point.js"
 import {Rect} from "../math/Rect.js"
 import {Util} from "../base/Util.js"
@@ -46,8 +47,11 @@ GatePainting.paintOutline = args => {
         args.painter.strokeLine(r.bottomLeft(), r.bottomRight());
     }
     args.painter.ctx.save();
-    args.painter.ctx.strokeStyle = Config.DEFAULT_STROKE_COLOR;
+    args.painter.ctx.strokeStyle = Config.GATE_BORDER_COLOR;
     args.painter.ctx.lineWidth = 1;
+    args.painter.ctx.shadowColor = Config.GATE_SHADOW_COLOR;
+    args.painter.ctx.shadowBlur = 3;
+    args.painter.ctx.shadowOffsetY = 1;
     drawRoundedRect();
     args.painter.ctx.restore();
 };
@@ -61,7 +65,10 @@ GatePainting.paintBackground =
         let r = args.rect;
         let radius = Math.min(6, r.w / 4, r.h / 4);
         args.painter.ctx.save();
-        args.painter.ctx.fillStyle = backColor;
+        args.painter.ctx.fillStyle = themeColor(backColor);
+        args.painter.ctx.shadowColor = Config.GATE_SHADOW_COLOR;
+        args.painter.ctx.shadowBlur = 4;
+        args.painter.ctx.shadowOffsetY = 1;
         args.painter.ctx.beginPath();
         if (typeof args.painter.ctx.roundRect === 'function') {
             args.painter.ctx.roundRect(r.x, r.y, r.w, r.h, radius);
@@ -93,8 +100,10 @@ GatePainting.LABEL_DRAWER = args => {
  * @constructor
  */
 GatePainting.MAKE_HIGHLIGHTED_DRAWER =
-    (toolboxFillColor = Config.GATE_FILL_COLOR, normalFillColor = Config.GATE_FILL_COLOR) => args => {
-        GatePainting.paintBackground(args, toolboxFillColor, normalFillColor);
+    (toolboxFillColor = undefined, normalFillColor = undefined) => args => {
+        let actualToolboxFillColor = toolboxFillColor === undefined ? Config.GATE_FILL_COLOR : toolboxFillColor;
+        let actualNormalFillColor = normalFillColor === undefined ? Config.GATE_FILL_COLOR : normalFillColor;
+        GatePainting.paintBackground(args, actualToolboxFillColor, actualNormalFillColor);
         GatePainting.paintOutline(args);
         GatePainting.paintResizeTab(args);
         GatePainting.paintGateSymbol(args);
@@ -127,7 +136,7 @@ GatePainting.paintResizeTab = args => {
     let trimRect = rect.skipLeft(2).skipRight(2);
     let {x: cx, y: cy} = trimRect.center();
     let backColor = args.isResizeHighlighted ? Config.HIGHLIGHTED_GATE_FILL_COLOR : Config.GATE_FILL_COLOR;
-    let foreColor = args.isResizeHighlighted ? '#222' : 'gray';
+    let foreColor = args.isResizeHighlighted ? Config.DEFAULT_TEXT_COLOR : 'gray';
     args.painter.ctx.save();
     args.painter.ctx.globalAlpha *= args.isResizeHighlighted ? 1 : 0.7;
     args.painter.fillRect(trimRect, backColor);
@@ -266,8 +275,10 @@ GatePainting.traceLocationIndependentOutline = (args, tracer) => {
  * @param {!string} toolboxFillColor
  */
 GatePainting.paintLocationIndependentFrame = (args,
-                                              normalFillColor = Config.GATE_FILL_COLOR,
-                                              toolboxFillColor = Config.GATE_FILL_COLOR) => {
+                                              normalFillColor = undefined,
+                                              toolboxFillColor = undefined) => {
+    normalFillColor = normalFillColor === undefined ? Config.GATE_FILL_COLOR : normalFillColor;
+    toolboxFillColor = toolboxFillColor === undefined ? Config.GATE_FILL_COLOR : toolboxFillColor;
     if (args.isInToolbox) {
         GatePainting.paintBackground(args, toolboxFillColor, normalFillColor);
         GatePainting.paintOutline(args);
@@ -292,7 +303,7 @@ GatePainting.makeLocationIndependentGateDrawer = normalFillColor => args => {
 /**
  * @param {!GateDrawParams} args
  */
-GatePainting.LOCATION_INDEPENDENT_GATE_DRAWER = GatePainting.makeLocationIndependentGateDrawer(Config.GATE_FILL_COLOR);
+GatePainting.LOCATION_INDEPENDENT_GATE_DRAWER = GatePainting.makeLocationIndependentGateDrawer();
 
 /**
  * @param {!Array.<!string>} labels

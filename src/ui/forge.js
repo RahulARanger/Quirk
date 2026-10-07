@@ -53,9 +53,11 @@ function initForge(revision, obsIsAnyOverlayShowing) {
     (() => {
         const forgeButton = /** @type {!HTMLButtonElement} */ document.getElementById('gate-forge-button');
         const forgeOverlay = /** @type {!HTMLDivElement} */ document.getElementById('gate-forge-overlay');
+        const forgeCloseButton = /** @type {!HTMLButtonElement} */ document.getElementById('gate-forge-close-button');
         const forgeDiv = /** @type {HTMLDivElement} */ document.getElementById('gate-forge-div');
         forgeButton.addEventListener('click', () => forgeIsVisible.set(true));
         forgeOverlay.addEventListener('click', () => forgeIsVisible.set(false));
+        forgeCloseButton.addEventListener('click', () => forgeIsVisible.set(false));
         obsIsAnyOverlayShowing.subscribe(e => { forgeButton.disabled = e; });
         document.addEventListener('keydown', e => {
             const ESC_KEY = 27;

@@ -80,7 +80,7 @@ class WidgetPainter {
         }
 
         pushRect(new Rect(0, nextY(), 1, 0), pad*2);
-        pushRect(painter.printParagraph('As matrix:', new Rect(pad, nextY(), w, 18), new Point(0, 0), 'black', 12), 0);
+        pushRect(painter.printParagraph('As matrix:', new Rect(pad, nextY(), w, 18), new Point(0, 0), Config.TOOLTIP_TEXT_COLOR, 11), 0);
         let matrixRect = new Rect(pad, nextY(), dispSize, dispSize);
         let matrixDescRect = new Rect(0, matrixRect.y, w - pad, dispSize).skipLeft(matrixRect.right() + pad);
         MathPainter.paintMatrix(
@@ -88,7 +88,7 @@ class WidgetPainter {
             matrix,
             matrixRect,
             Config.OPERATION_FORE_COLOR,
-            'black',
+            Config.TOOLTIP_TEXT_COLOR,
             undefined,
             Config.OPERATION_BACK_COLOR,
             undefined,
@@ -104,8 +104,8 @@ class WidgetPainter {
                     matDescs[r],
                     matrixDescRect.skipTop(r * rowHeight).takeTop(rowHeight),
                     new Point(0, 0.5),
-                    'black',
-                    12));
+                    Config.TOOLTIP_TEXT_COLOR,
+                    13));
             }
         }
     }
@@ -131,8 +131,8 @@ class WidgetPainter {
             'As rotation:',
             new Rect(pad, nextY(), w, 18),
             new Point(0, 0),
-            'black',
-            12), 0);
+            Config.TOOLTIP_TEXT_COLOR,
+            11), 0);
         let {angle, axis, phase} = matrix.qubitOperationToAngleAxisRotation();
 
         let blochRect = new Rect(pad, nextY(), dispSize, dispSize);
@@ -156,8 +156,8 @@ class WidgetPainter {
             rotDesc,
             new Rect(0, blochRect.y, w - pad, dispSize).skipLeft(blochRect.right() + pad),
             new Point(0, 0.5),
-            'black',
-            12));
+            Config.TOOLTIP_TEXT_COLOR,
+            13));
     }
 
 
@@ -184,8 +184,8 @@ class WidgetPainter {
             `As circuit (gate weight = ${weight}):`,
             new Rect(pad, nextY(), w, 18),
             new Point(0, 0),
-            'black',
-            12), 0);
+            Config.TOOLTIP_TEXT_COLOR,
+            11), 0);
 
         let circuitRect = new Rect(pad, nextY(), w, dispSize);
         let {maxW, maxH} = drawCircuitTooltip(painter, nestedCircuit, circuitRect, true, time);
@@ -201,16 +201,18 @@ class WidgetPainter {
      * @private
      */
     static paintGateTooltipHelper(painter, w, gate, time) {
-        const [pad, dispSize] = [4, 65];
+        // Keep the card compact while leaving enough room for matrix and
+        // rotation details to remain readable.
+        const [pad, dispSize] = [10, 64];
         let [maxX, maxY] = [0, pad];
         let pushRect = (rect, actualPad=pad) => {
             maxY = Math.max(maxY, rect.bottom() + actualPad);
             maxX = Math.max(maxX, rect.right() + actualPad);
         };
 
-        pushRect(painter.printLine(gate.name, new Rect(pad, maxY, w, 18), 0, "blue", 24));
+        pushRect(painter.printLine(gate.name, new Rect(pad, maxY, w, 20), 0, Config.TOOLTIP_TITLE_COLOR, 17));
         if (gate.blurb !== '') {
-            pushRect(painter.printParagraph(gate.blurb, new Rect(pad, maxY, w, 50), new Point(0, 0), 'black', 14));
+            pushRect(painter.printParagraph(gate.blurb, new Rect(pad, maxY, w, 54), new Point(0, 0), Config.TOOLTIP_TEXT_COLOR, 14));
         }
 
         let matrix = gate.knownMatrixAt(time);
@@ -246,9 +248,27 @@ class WidgetPainter {
         let w = area.w;
 
         let {maxX, maxY} = WidgetPainter.paintGateTooltipHelper(painter, w, gate, time);
-        let r = new Rect(0, 0, maxX, maxY);
-        painter.fillRect(r, '#F9FFF9');
-        painter.strokeRect(r, 'black');
+        // Focused tooltips get a comfortable minimum width. Without this, a
+        // short gate name can make the paragraph and matrix descriptions look
+        // like they are trapped in a narrow label.
+        let frameWidth = mayNeedToScale ? maxX : Math.max(maxX, 220);
+        let r = new Rect(0, 0, frameWidth, maxY);
+        painter.ctx.save();
+        painter.ctx.shadowColor = 'rgba(0, 0, 0, 0.24)';
+        painter.ctx.shadowBlur = 14;
+        painter.ctx.shadowOffsetY = 5;
+        painter.ctx.fillStyle = Config.TOOLTIP_BACKGROUND_COLOR;
+        painter.ctx.strokeStyle = Config.TOOLTIP_BORDER_COLOR;
+        painter.ctx.lineWidth = 1;
+        painter.ctx.beginPath();
+        if (typeof painter.ctx.roundRect === 'function') {
+            painter.ctx.roundRect(r.x, r.y, r.w, r.h, 9);
+        } else {
+            painter.ctx.rect(r.x, r.y, r.w, r.h);
+        }
+        painter.ctx.fill();
+        painter.ctx.stroke();
+        painter.ctx.restore();
         WidgetPainter.paintGateTooltipHelper(painter, w, gate, time);
 
         painter.ctx.restore();
