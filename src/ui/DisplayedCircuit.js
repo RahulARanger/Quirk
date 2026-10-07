@@ -126,7 +126,7 @@ class DisplayedCircuit {
         if (forTooltip) {
             return this.circuitDefinition.numWires * Config.WIRE_SPACING;
         }
-        return this._groundedWireCount() * Config.WIRE_SPACING + 55;
+        return this._groundedWireCount() * Config.WIRE_SPACING + 55 + Config.CIRCUIT_BOTTOM_PADDING;
     }
 
     /**
@@ -401,6 +401,20 @@ class DisplayedCircuit {
         painter.ctx.lineWidth = 1;
         painter.ctx.stroke();
         painter.ctx.restore();
+
+        painter.strokeRect(
+            new Rect(0.5, top + 0.5, painter.canvas.width - 1, bottom - top - 1),
+            '#D7DBE1');
+        painter.print(
+            'Circuit board',
+            70,
+            bottom - 30,
+            'left',
+            'middle',
+            '#8A919B',
+            '11px sans-serif',
+            180,
+            24);
     }
 
     /**

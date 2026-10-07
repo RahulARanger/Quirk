@@ -204,6 +204,21 @@ class DisplayedToolbox {
      */
     paint(painter, stats, hand) {
         painter.fillRect(this.curArea(painter.canvas.width), Config.BACKGROUND_COLOR_TOOLBOX);
+        painter.strokeLine(
+            new Point(0, this.top + 0.5),
+            new Point(painter.canvas.width, this.top + 0.5),
+            Config.TOOLBOX_DIVIDER_COLOR);
+        painter.strokeLine(
+            new Point(0, this.top + this.desiredHeight() - 0.5),
+            new Point(painter.canvas.width, this.top + this.desiredHeight() - 0.5),
+            Config.TOOLBOX_DIVIDER_COLOR);
+        for (let groupIndex = 1; groupIndex < this.toolboxGroups.length; groupIndex++) {
+            let x = Config.TOOLBOX_MARGIN_X + groupIndex * Config.TOOLBOX_GROUP_SPAN - Config.TOOLBOX_GROUP_SPACING / 2;
+            painter.strokeLine(
+                new Point(x, this.top + 10),
+                new Point(x, this.top + this.desiredHeight() - 10),
+                Config.TOOLBOX_DIVIDER_COLOR);
+        }
         this._standardApperance.paint(0, this.top, painter);
         this._paintDeviations(painter, stats, hand);
     }
@@ -270,7 +285,7 @@ class DisplayedToolbox {
             'center',
             'middle',
             Config.DEFAULT_TEXT_COLOR,
-            '16px sans-serif',
+            '12px sans-serif',
             r.w,
             r.h);
 
