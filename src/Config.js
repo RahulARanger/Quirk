@@ -33,23 +33,23 @@ Config.MIN_COL_COUNT = 5;
 Config.URL_CIRCUIT_PARAM_KEY = 'circuit';
 
 // Gate background colors.
-Config.GATE_FILL_COLOR = 'white';
-Config.HIGHLIGHTED_GATE_FILL_COLOR = '#FB7';
-Config.TIME_DEPENDENT_HIGHLIGHT_COLOR = '#FFC';
+Config.GATE_FILL_COLOR = '#FFFFFF';
+Config.HIGHLIGHTED_GATE_FILL_COLOR = '#C7D9FF';
+Config.TIME_DEPENDENT_HIGHLIGHT_COLOR = '#FFF1C7';
 
 // Mixed-state displays are green.
-Config.DISPLAY_GATE_IN_TOOLBOX_FILL_COLOR = '#4F4';
-Config.DISPLAY_GATE_BACK_COLOR = '#EFE';
-Config.DISPLAY_GATE_FORE_COLOR = '#3F3';
+Config.DISPLAY_GATE_IN_TOOLBOX_FILL_COLOR = '#BCE8D0';
+Config.DISPLAY_GATE_BACK_COLOR = '#E5F7EC';
+Config.DISPLAY_GATE_FORE_COLOR = '#18794E';
 
 // Changes are yellow.
-Config.OPERATION_BACK_COLOR = '#FFE';
-Config.OPERATION_FORE_COLOR = '#FF0';
+Config.OPERATION_BACK_COLOR = '#FFF6D7';
+Config.OPERATION_FORE_COLOR = '#C88700';
 
 // Pure-state displays are cyan.
-Config.SUPERPOSITION_BACK_COLOR = '#EFF';
-Config.SUPERPOSITION_MID_COLOR = '#8FF';
-Config.SUPERPOSITION_FORE_COLOR = '#0BB';
+Config.SUPERPOSITION_BACK_COLOR = '#E6F5F7';
+Config.SUPERPOSITION_MID_COLOR = '#9ADDE2';
+Config.SUPERPOSITION_FORE_COLOR = '#16727A';
 
 // Time constants.
 Config.CYCLE_DURATION_MS = 8000; // How long it takes for evolving gates to cycle, in milliseconds.
@@ -58,14 +58,18 @@ Config.REDRAW_COOLDOWN_MILLIS = 10; // Milliseconds. Rate-limit on redraws. Long
 
 /** Half of the span of a drawn gate, width-wise and height-wise.
 * @type {!number} */
-Config.GATE_RADIUS = 20;
-Config.WIRE_SPACING = 50;
+Config.GATE_RADIUS = 21;
+Config.WIRE_SPACING = 56;
 
-Config.BACKGROUND_COLOR = 'white';
-Config.BACKGROUND_COLOR_CIRCUIT = 'white';
+Config.BACKGROUND_COLOR = '#F7F8FA';
+Config.BACKGROUND_COLOR_CIRCUIT = '#FBFCFD';
+Config.CIRCUIT_GRID_COLOR = 'rgba(48, 54, 64, 0.07)';
+Config.CIRCUIT_GRID_SPACING = 28;
+Config.CIRCUIT_GUTTER_COLOR = '#EEF0F3';
+Config.CIRCUIT_LANE_COLOR = 'rgba(48, 54, 64, 0.025)';
 
 // Toolbox layout.
-Config.BACKGROUND_COLOR_TOOLBOX = '#CCC';
+Config.BACKGROUND_COLOR_TOOLBOX = '#E6E8EC';
 Config.TOOLBOX_GATE_SPACING = 2;
 Config.TOOLBOX_GROUP_SPACING = 24 - Config.TOOLBOX_GATE_SPACING;
 Config.TOOLBOX_GATE_SPAN = Config.GATE_RADIUS * 2 + Config.TOOLBOX_GATE_SPACING;
@@ -83,9 +87,9 @@ Config.MINIMUM_CANVAS_HEIGHT = 400;
 Config.SUPPRESSED_GLSL_WARNING_PATTERNS = [];
 
 // Draw constants.
-Config.DEFAULT_FILL_COLOR = 'white';
-Config.DEFAULT_STROKE_COLOR = 'black';
-Config.DEFAULT_TEXT_COLOR = 'black';
+Config.DEFAULT_FILL_COLOR = '#FFFFFF';
+Config.DEFAULT_STROKE_COLOR = '#252A32';
+Config.DEFAULT_TEXT_COLOR = '#252A32';
 Config.DEFAULT_FONT_SIZE = 12;
 Config.DEFAULT_FONT_FAMILY = 'sans-serif';
 Config.DEFAULT_STROKE_THICKNESS = 1;

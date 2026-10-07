@@ -344,6 +344,9 @@ class DisplayedCircuit {
      * @param {!boolean} showWires
      */
     paint(painter, hand, stats, forTooltip=false, showWires=true) {
+        if (!forTooltip) {
+            this._paintCircuitSurface(painter);
+        }
         if (showWires) {
             this._drawWires(painter, !forTooltip, hand);
         }
@@ -358,6 +361,46 @@ class DisplayedCircuit {
         }
 
         this._drawRowDragHighlight(painter);
+    }
+
+    /**
+     * Paints the editable area as a quiet work surface. The original canvas
+     * interactions remain in the same positions; this only improves the
+     * visual grouping of lanes, columns, and the qubit-label gutter.
+     *
+     * @param {!Painter} painter
+     * @private
+     */
+    _paintCircuitSurface(painter) {
+        let top = this.top;
+        let bottom = top + this.desiredHeight();
+        painter.fillRect(new Rect(0, top, painter.canvas.width, bottom - top), Config.BACKGROUND_COLOR_CIRCUIT);
+
+        let wireCount = Math.min(this.circuitDefinition.numWires, Config.MAX_WIRE_COUNT);
+        for (let row = 0; row < wireCount; row++) {
+            if (row % 2 === 0) {
+                painter.fillRect(this.wireRect(row), Config.CIRCUIT_LANE_COLOR);
+            }
+        }
+
+        painter.fillRect(new Rect(0, top, 52, bottom - top), Config.CIRCUIT_GUTTER_COLOR);
+        painter.strokeLine(new Point(52.5, top), new Point(52.5, bottom), '#D7DBE1');
+
+        let spacing = Config.CIRCUIT_GRID_SPACING;
+        painter.ctx.save();
+        painter.ctx.beginPath();
+        for (let x = spacing; x < painter.canvas.width; x += spacing) {
+            painter.ctx.moveTo(x + 0.5, top);
+            painter.ctx.lineTo(x + 0.5, bottom);
+        }
+        for (let y = top; y < bottom; y += spacing) {
+            painter.ctx.moveTo(0, y + 0.5);
+            painter.ctx.lineTo(painter.canvas.width, y + 0.5);
+        }
+        painter.ctx.strokeStyle = Config.CIRCUIT_GRID_COLOR;
+        painter.ctx.lineWidth = 1;
+        painter.ctx.stroke();
+        painter.ctx.restore();
     }
 
     /**
@@ -383,7 +426,7 @@ class DisplayedCircuit {
                 if (this._highlightedSlot === undefined && hand.pos !== undefined && rect.containsPoint(hand.pos)) {
                     painter.fillRect(rect, Config.HIGHLIGHTED_GATE_FILL_COLOR);
                 }
-                painter.print(`|${v}⟩`, 20, y, 'right', 'middle', 'black', '14px sans-serif', 20, Config.WIRE_SPACING);
+                painter.print(`|${v}⟩`, 20, y, 'right', 'middle', Config.DEFAULT_TEXT_COLOR, '14px sans-serif', 20, Config.WIRE_SPACING);
             }
         }
 
@@ -412,7 +455,7 @@ class DisplayedCircuit {
                     }
                     lastX = x;
                 }
-            }).thenStroke('black');
+            }).thenStroke(Config.DEFAULT_STROKE_COLOR);
         }
         painter.ctx.restore();
         if (this._extraWireStartIndex !== undefined && this.circuitDefinition.numWires === Config.MAX_WIRE_COUNT) {
@@ -615,7 +658,7 @@ class DisplayedCircuit {
             this._highlightedSlot.row === undefined) {
             let rect = this.gateRect(0, col, 1, this._groundedWireCount()).paddedBy(3);
             painter.fillRect(rect, 'rgba(255, 196, 112, 0.7)');
-            painter.strokeRect(rect, 'black');
+            painter.strokeRect(rect, Config.DEFAULT_STROKE_COLOR);
         }
     }
 
@@ -632,7 +675,7 @@ class DisplayedCircuit {
             let w = this.gateRect(row, this.clampedCircuitColCount() + 1).x;
             let rect = this.wireRect(row).takeLeft(w);
             painter.fillRect(rect, 'rgba(255, 196, 112, 0.7)');
-            painter.strokeRect(rect, 'black');
+            painter.strokeRect(rect, Config.DEFAULT_STROKE_COLOR);
         }
     }
 
@@ -1338,7 +1381,7 @@ class DisplayedCircuit {
             amplitudeGrid,
             gridRect,
             numWire < Config.SIMPLE_SUPERPOSITION_DRAWING_WIRE_THRESHOLD ? Config.SUPERPOSITION_MID_COLOR : undefined,
-            'black',
+            Config.DEFAULT_TEXT_COLOR,
             numWire < Config.SIMPLE_SUPERPOSITION_DRAWING_WIRE_THRESHOLD ? Config.SUPERPOSITION_FORE_COLOR : undefined,
             Config.SUPERPOSITION_BACK_COLOR);
         let forceSign = v => (v >= 0 ? '+' : '') + v.toFixed(2);
@@ -1620,7 +1663,7 @@ function _drawLabelsReasonablyFast(painter, dy, n, labeller, boundingWidth) {
     } else {
         ctx.fillRect(0, 0, w + 2*pad, step*n);
     }
-    ctx.fillStyle = 'black';
+    ctx.fillStyle = Config.DEFAULT_TEXT_COLOR;
     for (let i = 0; i < n; i++) {
         ctx.fillText(labeller(i), pad, h*0.5 + step*i);
     }

@@ -16,10 +16,14 @@
         <!-- Primary content -->
         <div id="inspectorDiv" style="display: none">
             <!-- Buttons -->
-            <div class="quirk-toolbar">
+            <header class="quirk-toolbar">
                 <div class="toolbar-brand">
                     <div class="brand-mark" aria-hidden="true">Q</div>
-                    <div><strong>Quirk</strong><span>Quantum circuit simulator</span></div>
+                    <div><strong>Quirk</strong><span>Academic circuit workspace</span></div>
+                </div>
+                <div class="toolbar-document" aria-label="Current document">
+                    <span class="document-dot" aria-hidden="true"></span>
+                    <span>Circuit 1</span>
                 </div>
                 <div class="toolbar-actions">
                     <button id="menu-button" class="toolbar-button toolbar-button-accent" type="button">Menu</button>
@@ -30,12 +34,30 @@
                     <button id="redo-button" class="toolbar-button" type="button">Redo</button>
                     <button id="gate-forge-button" class="toolbar-button" type="button">Make Gate</button>
                 </div>
-                <span class="app-meta">Version 2.3</span>
-            </div>
+                <span class="app-meta">v2.3 <span class="status-dot" aria-hidden="true"></span> Ready</span>
+            </header>
 
             <!-- Circuit drawing area -->
-            <div id="canvasDiv" style="width: 100%; touch-action: manipulation; tab-index: 0; position: relative;">
-                <canvas id="drawCanvas"></canvas>
+            <div class="workspace-layout">
+                <aside class="workspace-rail" aria-label="Workspace sections">
+                    <div class="rail-heading">Workspace</div>
+                    <div class="rail-item rail-item-active"><span class="rail-icon">▦</span><span>Circuit</span></div>
+                    <div class="rail-item"><span class="rail-icon">⌘</span><span>Toolbox</span></div>
+                    <div class="rail-item"><span class="rail-icon">◇</span><span>Examples</span></div>
+                    <div class="rail-rule"></div>
+                    <div class="rail-heading">Context</div>
+                    <div class="rail-note">Drag a gate from the canvas toolbox onto a wire to edit the circuit.</div>
+                    <div class="rail-footer">Forked for academic<br>and research use</div>
+                </aside>
+                <main class="workspace-main">
+                    <div class="canvas-header">
+                        <div class="canvas-title"><span class="canvas-title-mark">Q</span><span>Quantum circuit</span></div>
+                        <div class="canvas-meta">Editable workspace <span>·</span> drag and drop</div>
+                    </div>
+                    <div id="canvasDiv" style="width: 100%; touch-action: manipulation; tab-index: 0; position: relative;">
+                        <canvas id="drawCanvas"></canvas>
+                    </div>
+                </main>
             </div>
 
             <!-- INCLUDE EXPORT PART -->

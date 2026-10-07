@@ -223,7 +223,7 @@ class DisplayedToolbox {
         painter.ctx.save();
         painter.ctx.translate(x, y);
         painter.ctx.rotate(-Math.PI/2);
-        painter.printLine(this.name, new Rect(-r.h / 2, -r.w / 2, r.h, r.w), 0.5, 'black', 24);
+        painter.printLine(this.name, new Rect(-r.h / 2, -r.w / 2, r.h, r.w), 0.5, Config.DEFAULT_TEXT_COLOR, 24);
         painter.ctx.restore();
     }
 
@@ -269,7 +269,7 @@ class DisplayedToolbox {
             r.y + r.h/2,
             'center',
             'middle',
-            'black',
+            Config.DEFAULT_TEXT_COLOR,
             '16px sans-serif',
             r.w,
             r.h);
