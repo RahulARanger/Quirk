@@ -54,7 +54,7 @@ let showErrorDiv_forced = (callout, subject, body, isKnownIssueUrl) => {
         encodeURIComponent('\n\n\n' + body)
     ].join('');
     document.getElementById('error-github-anchor').href = [
-        'https://github.com/Strilanc/Quirk/issues/new?title=',
+        'https://github.com/RahulARanger/Quirk/issues/new?title=',
         encodeURIComponent('Encountered error: ' + subject),
         '&body=',
         encodeURIComponent('\n\n\n' + body)

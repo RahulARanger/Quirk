@@ -19,6 +19,38 @@ import {ObservableValue} from "../base/Obs.js"
 const menuIsVisible = new ObservableValue(true);
 const obsMenuIsShowing = menuIsVisible.observable().whenDifferent();
 let closeMenu = () => menuIsVisible.set(false);
+const THEME_STORAGE_KEY = 'quirk-theme';
+
+function initThemeToggle() {
+    const themeToggle = /** @type {!HTMLButtonElement} */ document.getElementById('theme-toggle');
+    if (!themeToggle) return;
+
+    let savedTheme = null;
+    try {
+        savedTheme = window.localStorage.getItem(THEME_STORAGE_KEY);
+    } catch (e) {
+        // Storage can be unavailable in private or restricted browsing contexts.
+    }
+
+    const applyTheme = theme => {
+        const isDark = theme === 'dark';
+        document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+        themeToggle.textContent = isDark ? 'Use light mode' : 'Use dark mode';
+        themeToggle.setAttribute('aria-pressed', String(isDark));
+        themeToggle.setAttribute('aria-label', isDark ? 'Switch to light mode' : 'Switch to dark mode');
+    };
+
+    applyTheme(savedTheme === 'light' ? 'light' : 'dark');
+    themeToggle.addEventListener('click', () => {
+        const nextTheme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+        applyTheme(nextTheme);
+        try {
+            window.localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+        } catch (e) {
+            // Keep the current theme for this session when storage is unavailable.
+        }
+    });
+}
 
 const groverLink = {
     "cols":[
@@ -276,6 +308,8 @@ const distillLink = {
  * @param {!Observable.<!boolean>} obsIsAnyOverlayShowing
  */
 function initMenu(revision, obsIsAnyOverlayShowing) {
+    initThemeToggle();
+
     // Show/hide menu overlay.
     (() => {
         const menuButton = /** @type {!HTMLButtonElement} */ document.getElementById('menu-button');
@@ -295,7 +329,8 @@ function initMenu(revision, obsIsAnyOverlayShowing) {
         obsMenuIsShowing.subscribe(showing => {
             menutDiv.style.display = showing ? 'block' : 'none';
             if (showing) {
-                document.getElementById('export-link-copy-button').focus();
+                const closeButton = document.getElementById('close-menu-button');
+                if (closeButton) closeButton.focus();
             }
         });
     })();
