@@ -55,6 +55,64 @@ function configurableRotationDrawer(pattern, xyz, tScale) {
 }
 
 /**
+ * @param {!string} formula
+ * @param {undefined|!number} time
+ * @param {!boolean} warn
+ * @returns {undefined|!{theta: !number, phi: !number}}
+ */
+function parseRxyFormula(formula, time, warn) {
+    if (typeof formula !== 'string') {
+        return undefined;
+    }
+    let parts = formula.split(',');
+    if (parts.length !== 2) {
+        if (warn) {
+            console.warn('RXY expects two comma-separated formulas: theta, phi');
+        }
+        return undefined;
+    }
+    let theta = parseTimeFormula(parts[0].trim(), time, warn);
+    let phi = parseTimeFormula(parts[1].trim(), time, warn);
+    return theta === undefined || phi === undefined ? undefined : {theta, phi};
+}
+
+/**
+ * @param {!number} theta Rotation angle in radians.
+ * @param {!number} phi Axis angle in radians, measured from +X toward +Y.
+ * @returns {!Matrix}
+ */
+function rxyMatrix(theta, phi) {
+    let fraction = theta / (2 * Math.PI);
+    return Matrix.fromPauliRotation(
+        fraction * Math.cos(phi),
+        fraction * Math.sin(phi),
+        0);
+}
+
+/**
+ * @param {!GateDrawParams} args
+ */
+function rxyDrawer(args) {
+    GatePainting.paintBackground(args, Config.TIME_DEPENDENT_HIGHLIGHT_COLOR);
+    GatePainting.paintOutline(args);
+    let text = args.isInToolbox ? 'RXY' : `RXY(${args.gate.param})`;
+    GatePainting.paintGateSymbol(args, text);
+    GatePainting.paintGateButton(args);
+
+    let isStable = args.gate.stableDuration() === Infinity;
+    if ((!args.isInToolbox || args.isHighlighted) && !isStable) {
+        let parsed = parseRxyFormula(args.gate.param, args.stats.time*2-1, false);
+        if (parsed !== undefined) {
+            GatePainting.paintCycleState(
+                args,
+                parsed.theta,
+                Math.cos(parsed.phi),
+                Math.sin(parsed.phi));
+        }
+    }
+}
+
+/**
  * @param {!GateDrawParams} args
  */
 function exponent_to_A_len_painter(args) {
@@ -268,6 +326,48 @@ function updateUsingFormula(gate) {
 }
 
 /**
+ * @param {!GateCheckArgs} args
+ * @returns {undefined|!string}
+ */
+function badRxyFormulaDetector(args) {
+    if (typeof args.gate.param !== 'string') {
+        return 'expected theta, phi';
+    }
+    for (let t of [0.01, 0.63, 0.98]) {
+        if (parseRxyFormula(args.gate.param, t, false) === undefined) {
+            return 'bad\nformula';
+        }
+    }
+    return undefined;
+}
+
+/**
+ * @param {!Gate} gate
+ */
+function updateUsingRxyFormula(gate) {
+    let stable = parseRxyFormula(gate.param, undefined, false) !== undefined;
+    gate._stableDuration = stable ? Infinity : 0;
+
+    if (typeof gate.param === 'string') {
+        gate.width = Math.max(2, Math.ceil((gate.param.length + 1) / 5));
+        gate.alternate = gate._copy();
+        gate.alternate.alternate = gate;
+        let parts = gate.param.split(',');
+        let theta = parts[0].trim();
+        let phi = parts.slice(1).join(',').trim();
+        if (theta.startsWith('-(') && theta.endsWith(')')) {
+            theta = theta.substring(2, theta.length - 1);
+        } else {
+            theta = '-(' + theta + ')';
+        }
+        gate.alternate.param = theta + ', ' + phi;
+    } else {
+        gate.width = 2;
+        gate.alternate = gate;
+    }
+}
+
+/**
  * @param {!string} quantityName
  * @returns {!function(gate: !Gate): !Gate}
  */
@@ -290,6 +390,69 @@ function angleClicker(quantityName) {
         return oldGate.withParam(txt);
     };
 }
+
+function rxyClicker(oldGate) {
+    let txt = prompt(
+        "Enter two formulas for RXY, separated by a comma: theta, phi.\n" +
+        "\n" +
+        "theta is the rotation angle in radians. phi selects the axis in the XY plane, " +
+        "measured from +X toward +Y. Both formulas can depend on time t.\n" +
+        "\n" +
+        "Available constants: e, pi\n" +
+        "Available functions: cos, sin, acos, asin, tan, atan, ln, sqrt, exp\n" +
+        "Available operators: + * / - ^",
+        '' + oldGate.param);
+    if (txt === null || txt.trim() === '') {
+        return oldGate;
+    }
+    return oldGate.withParam(txt);
+}
+
+/**
+ * Creates the common fixed-angle sixth-turn rotations while keeping their
+ * serialized ids explicit and stable for saved circuits.
+ *
+ * @param {!string} axis
+ * @param {!string} symbol
+ * @param {!string} serializedId
+ * @param {!number} fraction
+ * @returns {!Gate}
+ */
+function fixedSixthTurnGate(axis, symbol, serializedId, fraction) {
+    let vector = {x: 0, y: 0, z: 0};
+    vector[axis] = fraction / 2 / Math.PI;
+    return new GateBuilder().
+        setSerializedIdAndSymbol(serializedId).
+        setSymbol(symbol).
+        setTitle(`${axis.toUpperCase()} rotation by ${fraction > 0 ? 'π/6' : '-π/6'}`).
+        setBlurb(`Rotates around the ${axis.toUpperCase()} axis by ${fraction > 0 ? 'π/6' : '-π/6'}.`).
+        setKnownEffectToMatrix(Matrix.fromPauliRotation(vector.x, vector.y, vector.z)).
+        gate;
+}
+
+ParametrizedRotationGates.RX6 = fixedSixthTurnGate('x', 'Rx(π/6)', 'Rx(pi/6)', Math.PI / 6);
+ParametrizedRotationGates.RX6i = fixedSixthTurnGate('x', 'Rx(-π/6)', 'Rx(-pi/6)', -Math.PI / 6);
+ParametrizedRotationGates.RY6 = fixedSixthTurnGate('y', 'Ry(π/6)', 'Ry(pi/6)', Math.PI / 6);
+ParametrizedRotationGates.RY6i = fixedSixthTurnGate('y', 'Ry(-π/6)', 'Ry(-pi/6)', -Math.PI / 6);
+ParametrizedRotationGates.RZ6 = fixedSixthTurnGate('z', 'Rz(π/6)', 'Rz(pi/6)', Math.PI / 6);
+ParametrizedRotationGates.RZ6i = fixedSixthTurnGate('z', 'Rz(-π/6)', 'Rz(-pi/6)', -Math.PI / 6);
+
+ParametrizedRotationGates.FormulaicRotationRxy = new GateBuilder().
+    setSerializedIdAndSymbol("RXYft").
+    setSymbol("RXY").
+    setTitle("Formula RXY Gate").
+    setBlurb("Rotates around an arbitrary axis in the XY plane. θ is the angle in radians and φ selects the axis.").
+    setDrawer(rxyDrawer).
+    setWidth(2).
+    setExtraDisableReasonFinder(badRxyFormulaDetector).
+    setOnClickGateFunc(rxyClicker).
+    setEffectToTimeVaryingMatrix((t, formula) => {
+        let parsed = parseRxyFormula(formula, t*2-1, true);
+        return parsed === undefined ? Matrix.identity(2) : rxyMatrix(parsed.theta, parsed.phi);
+    }).
+    setWithParamPropertyRecomputeFunc(updateUsingRxyFormula).
+    promiseEffectIsUnitary().
+    gate.withParam('pi/2, 0');
 
 ParametrizedRotationGates.FormulaicRotationX = new GateBuilder().
     setSerializedIdAndSymbol("X^ft").
@@ -379,6 +542,12 @@ ParametrizedRotationGates.FormulaicRotationRz = new GateBuilder().
     gate.withParam('pi t^2');
 
 ParametrizedRotationGates.all =[
+    ParametrizedRotationGates.RX6,
+    ParametrizedRotationGates.RX6i,
+    ParametrizedRotationGates.RY6,
+    ParametrizedRotationGates.RY6i,
+    ParametrizedRotationGates.RZ6,
+    ParametrizedRotationGates.RZ6i,
     ParametrizedRotationGates.XToA,
     ParametrizedRotationGates.XToMinusA,
     ParametrizedRotationGates.YToA,
@@ -391,6 +560,7 @@ ParametrizedRotationGates.all =[
     ParametrizedRotationGates.FormulaicRotationRx,
     ParametrizedRotationGates.FormulaicRotationRy,
     ParametrizedRotationGates.FormulaicRotationRz,
+    ParametrizedRotationGates.FormulaicRotationRxy,
 ];
 
 export {ParametrizedRotationGates}

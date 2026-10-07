@@ -1,24 +1,24 @@
 <style>
     :root {
-        --app-bg: #1e2023;
-        --app-surface: #272a2f;
-        --app-surface-raised: #2e3238;
-        --app-surface-hover: #353a42;
-        --app-border: #3b4048;
-        --app-border-soft: #30343a;
-        --app-text: #f0f1f3;
-        --app-muted: #a0a6af;
-        --app-subtle: #747b86;
-        --app-accent: #f59e0b;
-        --app-accent-soft: rgba(245, 158, 11, 0.16);
+        --app-bg: #17181b;
+        --app-surface: #202226;
+        --app-surface-raised: #282b30;
+        --app-surface-hover: #30343a;
+        --app-border: #3a3f47;
+        --app-border-soft: #2b2f35;
+        --app-text: #f3f4f6;
+        --app-muted: #a6adb7;
+        --app-subtle: #7d8590;
+        --app-accent: #b45309;
+        --app-accent-soft: rgba(180, 83, 9, 0.18);
         --app-danger: #f28b8b;
         --app-shadow: 0 16px 36px rgba(0, 0, 0, 0.22);
-        --canvas-bg: #1b2026;
-        --canvas-edge: #3b434f;
+        --canvas-bg: #1b1e22;
+        --canvas-edge: #3b424b;
     }
 
     :root[data-theme="light"] {
-        --app-bg: #f1f2f4;
+        --app-bg: #f2f3f5;
         --app-surface: #ffffff;
         --app-surface-raised: #f7f8fa;
         --app-surface-hover: #e9edf2;
@@ -27,11 +27,11 @@
         --app-text: #242830;
         --app-muted: #66707d;
         --app-subtle: #87909b;
-        --app-accent: #d97706;
-        --app-accent-soft: rgba(217, 119, 6, 0.13);
+        --app-accent: #a9460c;
+        --app-accent-soft: rgba(169, 70, 12, 0.12);
         --app-danger: #c64d4d;
         --app-shadow: 0 16px 36px rgba(34, 42, 52, 0.12);
-        --canvas-bg: #f7f8fa;
+        --canvas-bg: #f4f5f7;
         --canvas-edge: #d7dbe1;
     }
 
@@ -53,13 +53,13 @@
     .quirk-toolbar {
         display: flex;
         align-items: center;
-        min-height: 44px;
-        gap: 12px;
-        padding: 5px 12px;
+        min-height: 40px;
+        gap: 10px;
+        padding: 4px 10px;
         border-bottom: 1px solid var(--app-border-soft);
         background: var(--app-surface);
     }
-    .toolbar-brand { display: flex; align-items: center; gap: 8px; min-width: 190px; }
+    .toolbar-brand { display: flex; align-items: center; gap: 8px; min-width: 178px; }
     .brand-mark, .canvas-title-mark {
         display: grid;
         place-items: center;
@@ -69,7 +69,7 @@
         font-weight: 800;
         letter-spacing: -0.08em;
     }
-    .brand-mark { width: 24px; height: 24px; border-radius: 5px; font-size: 13px; }
+    .brand-mark { width: 23px; height: 23px; border-radius: 5px; font-size: 12px; }
     .toolbar-brand strong { display: block; font-size: 13px; line-height: 1.1; letter-spacing: 0.01em; }
     .toolbar-brand span { display: block; color: var(--app-muted); font-size: 10px; margin-top: 3px; }
     .toolbar-document {
@@ -87,25 +87,30 @@
     .toolbar-button {
         min-height: 27px;
         padding: 4px 8px;
-        border: 1px solid transparent;
+        border: 1px solid var(--app-border-soft);
         border-radius: 6px;
         color: var(--app-muted);
-        background: transparent;
+        background: var(--app-surface-raised);
+        font-size: 12px;
+        font-weight: 600;
         cursor: pointer;
-        transition: color 120ms ease, background 120ms ease, border-color 120ms ease;
+        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+        transition: color 120ms ease, background 120ms ease, border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
     }
-    .toolbar-button:hover { color: var(--app-text); background: var(--app-surface-hover); border-color: var(--app-border); }
-    .toolbar-button-accent { color: var(--app-text); background: var(--app-accent-soft); border-color: rgba(245, 158, 11, 0.38); }
+    .toolbar-button:hover { color: var(--app-text); background: var(--app-surface-hover); border-color: var(--app-border); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.05); transform: translateY(-1px); }
+    .toolbar-button:active { background: var(--app-accent-soft); box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.16); transform: translateY(0); }
+    .toolbar-button:disabled { cursor: default; opacity: 0.48; }
+    .toolbar-button-accent { color: var(--app-text); background: var(--app-accent-soft); border-color: color-mix(in srgb, var(--app-accent) 60%, transparent); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06); }
     .toolbar-button-danger { color: var(--app-danger); }
     .app-meta { display: flex; align-items: center; gap: 6px; color: var(--app-subtle); font-size: 11px; white-space: nowrap; }
-    .status-dot { width: 6px; height: 6px; background: #55c58a; }
+    .status-dot { width: 6px; height: 6px; background: var(--app-accent); }
 
-    .workspace-layout { display: grid; grid-template-columns: 164px minmax(0, 1fr); height: calc(100vh - 44px); min-height: 0; }
+    .workspace-layout { display: grid; grid-template-columns: 148px minmax(0, 1fr); height: calc(100vh - 40px); min-height: 0; }
     .workspace-rail {
         display: flex;
         flex-direction: column;
         gap: 4px;
-        padding: 12px 9px 10px;
+        padding: 10px 8px 9px;
         border-right: 1px solid var(--app-border-soft);
         background: var(--app-surface);
     }
@@ -116,14 +121,14 @@
     .rail-toggle:hover { color: var(--app-text); border-color: var(--app-border); background: var(--app-accent-soft); }
     .rail-item { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 28px; padding: 0 8px; border: 1px solid transparent; border-radius: 5px; color: var(--app-muted); background: transparent; font: inherit; text-align: left; cursor: pointer; transition: color 120ms ease, background 120ms ease, border-color 120ms ease; }
     .rail-item:hover { color: var(--app-text); background: var(--app-surface-hover); border-color: var(--app-border); }
-    .rail-item-active { color: var(--app-text); background: var(--app-accent-soft); border-color: rgba(245, 158, 11, 0.24); }
-    .rail-item-active:hover { background: var(--app-accent-soft); border-color: rgba(245, 158, 11, 0.42); }
+    .rail-item-active { color: var(--app-text); background: var(--app-accent-soft); border-color: color-mix(in srgb, var(--app-accent) 35%, transparent); box-shadow: inset 2px 0 0 var(--app-accent); }
+    .rail-item-active:hover { background: var(--app-accent-soft); border-color: color-mix(in srgb, var(--app-accent) 60%, transparent); }
     .rail-icon { display: inline-grid; place-items: center; width: 17px; color: var(--app-subtle); font-size: 15px; }
     .rail-item-active .rail-icon { color: var(--app-accent); }
     .rail-rule { height: 1px; margin: 13px 8px; background: var(--app-border-soft); }
     .rail-note { margin: 2px 8px; color: var(--app-subtle); font-size: 11px; line-height: 1.55; }
     .rail-footer { margin-top: auto; padding: 12px 8px 0; border-top: 1px solid var(--app-border-soft); color: var(--app-subtle); font-size: 10px; line-height: 1.5; }
-    .workspace-main { display: grid; grid-template-rows: minmax(0, 1fr); min-width: 0; min-height: 0; overflow: hidden; padding: 10px 12px 12px; background: var(--app-bg); }
+    .workspace-main { display: grid; grid-template-rows: minmax(0, 1fr); min-width: 0; min-height: 0; overflow: hidden; padding: 8px 10px 10px; background: var(--app-bg); }
     #canvasDiv {
         width: 100%;
         min-height: 0;
@@ -133,9 +138,9 @@
         tab-index: 0;
         position: relative;
         border: 1px solid var(--canvas-edge);
-        border-radius: 8px;
+        border-radius: 6px;
         background: var(--canvas-bg);
-        box-shadow: var(--app-shadow);
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.16);
     }
     #drawCanvas { display: block; }
     #inspectorDiv.workspace-rail-collapsed .workspace-layout { grid-template-columns: 48px minmax(0, 1fr); }
@@ -159,36 +164,38 @@
         border: 1px solid var(--app-border);
         border-radius: 7px;
         background: var(--app-surface);
-        background: color-mix(in srgb, var(--app-surface) 94%, transparent);
-        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.2);
-        backdrop-filter: blur(12px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.035);
     }
     .workspace-command-bar .toolbar-actions { flex-wrap: nowrap; }
 
     .forge-layer { position: fixed; inset: 0; z-index: 1001; }
     .forge-overlay { position: absolute; inset: 0; background: rgba(7, 10, 14, 0.78); backdrop-filter: blur(3px); }
-    .forge-dialog { position: relative; z-index: 1; width: min(1120px, calc(100vw - 32px)); max-height: calc(100vh - 32px); margin: 16px auto; overflow: auto; padding: 22px; color: var(--app-text); background: var(--app-surface); border: 1px solid var(--app-border); border-radius: 12px; box-shadow: 0 24px 64px rgba(0, 0, 0, 0.42); }
-    .forge-dialog-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; margin-bottom: 18px; }
+    .forge-dialog { position: relative; z-index: 1; width: min(980px, calc(100vw - 28px)); max-height: calc(100vh - 24px); margin: 12px auto; overflow: auto; padding: 16px; color: var(--app-text); background: var(--app-surface); border: 1px solid var(--app-border); border-radius: 10px; box-shadow: 0 24px 64px rgba(0, 0, 0, 0.42); }
+    .forge-dialog-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 10px; }
     .forge-dialog-kicker { color: var(--app-accent); font-size: 10px; font-weight: 750; letter-spacing: 0.12em; }
-    .forge-dialog h2 { margin: 4px 0 5px; color: var(--app-text); font-size: 20px; letter-spacing: -0.02em; }
-    .forge-dialog-header p { margin: 0; color: var(--app-muted); font-size: 12px; line-height: 1.45; }
+    .forge-dialog h2 { margin: 3px 0 4px; color: var(--app-text); font-size: 18px; letter-spacing: -0.02em; }
+    .forge-dialog-header p { margin: 0; color: var(--app-muted); font-size: 11px; line-height: 1.4; }
     .forge-close-button { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 1px solid var(--app-border); border-radius: 6px; color: var(--app-muted); background: transparent; font-size: 22px; line-height: 1; cursor: pointer; }
     .forge-close-button:hover { color: var(--app-text); background: var(--app-surface-hover); }
-    .forge-table { width: 100%; table-layout: fixed; border-spacing: 8px; }
-    .forge-table th { padding: 9px 10px; color: var(--app-text); background: var(--app-surface-raised); border: 1px solid var(--app-border-soft); border-radius: 7px; font-size: 12px; font-weight: 700; text-align: left; }
-    .forge-table td { padding: 12px; color: var(--app-muted); background: var(--app-surface-raised); border: 1px solid var(--app-border-soft); border-radius: 8px; vertical-align: top; line-height: 1.55; }
+    .forge-table { width: 100%; table-layout: fixed; border-spacing: 5px; }
+    .forge-table col:nth-child(1), .forge-table col:nth-child(3), .forge-table col:nth-child(5) { width: 32%; }
+    .forge-table col:nth-child(2), .forge-table col:nth-child(4) { width: 2%; }
+    .forge-table th { padding: 7px 9px; color: var(--app-text); background: var(--app-surface-raised); border: 1px solid var(--app-border-soft); border-radius: 6px; font-size: 11px; font-weight: 700; text-align: left; }
+    .forge-table td { padding: 8px; color: var(--app-muted); background: var(--app-surface-raised); border: 1px solid var(--app-border-soft); border-radius: 7px; vertical-align: top; line-height: 1.45; }
     .forge-table td:empty { padding: 0; background: transparent; border: 0; }
-    .forge-input { min-height: 28px; margin: 4px 0; padding: 4px 7px; border: 1px solid var(--app-border); border-radius: 5px; color: var(--app-text); background: var(--app-bg); font: inherit; }
+    .forge-table td:nth-child(2), .forge-table td:nth-child(4) { padding-inline: 0; color: var(--app-subtle); background: transparent; border-color: transparent; text-align: center; }
+    .forge-table th:nth-child(2), .forge-table th:nth-child(4) { padding: 0; background: transparent; border-color: transparent; }
+    .forge-input { min-height: 26px; margin: 3px 0; padding: 3px 6px; border: 1px solid var(--app-border); border-radius: 5px; color: var(--app-text); background: var(--app-bg); font: inherit; }
     .forge-input:focus { outline: 2px solid var(--app-accent); outline-offset: 1px; border-color: var(--app-accent); }
     .forge-input::placeholder { color: var(--app-subtle); }
     .forge-table label { display: block; color: var(--app-muted); font-size: 11px; font-weight: 650; }
-    .forge-field-label { display: block; margin-bottom: 5px; color: var(--app-text); font-size: 11px; font-weight: 700; }
-    .forge-textarea { display: block; width: 100%; min-height: 88px; resize: vertical; }
+    .forge-field-label { display: block; margin-bottom: 4px; color: var(--app-text); font-size: 10px; font-weight: 700; }
+    .forge-textarea { display: block; width: 100%; min-height: 70px; resize: vertical; }
     .forge-checkbox-label { display: inline-block !important; margin-left: 4px; font-weight: 500 !important; vertical-align: middle; }
     .forge-name-label { display: flex !important; align-items: center; gap: 7px; margin-top: 2px; }
     .forge-name-input { width: 8.5em; }
-    .forge-preview-canvas { display: block; width: 100%; height: 100px; margin-top: 10px; border: 1px solid var(--app-border); border-radius: 5px; background: var(--canvas-bg); }
-    .forge-create-button { width: 100%; min-height: 32px; margin-top: 4px; padding: 5px 8px; border: 1px solid rgba(245, 158, 11, 0.42); border-radius: 6px; color: #fff; background: var(--app-accent); font-weight: 650; cursor: pointer; }
+    .forge-preview-canvas { display: block; width: 100%; max-width: 240px; height: auto; aspect-ratio: 2 / 1; margin: 6px auto 0; border: 1px solid var(--app-border); border-radius: 5px; background: var(--canvas-bg); }
+    .forge-create-button { width: 100%; min-height: 30px; margin-top: 3px; padding: 4px 7px; border: 1px solid color-mix(in srgb, var(--app-accent) 70%, transparent); border-radius: 5px; color: #fff; background: var(--app-accent); font-weight: 650; cursor: pointer; }
     .forge-create-button:hover:not(:disabled) { filter: brightness(1.08); }
     .forge-create-button:disabled { color: var(--app-subtle); background: var(--app-border-soft); border-color: var(--app-border); cursor: not-allowed; }
     .forge-table td > strong { color: var(--app-text); }
@@ -203,7 +210,7 @@
     .menu-brand h1 { margin: 0; font-size: clamp(24px, 4vw, 34px); letter-spacing: -0.04em; }
     .menu-kicker { max-width: 520px; margin: 12px 0 0; color: var(--app-muted); font-size: 14px; line-height: 1.6; }
     .menu-loading { min-height: 55px; display: grid; place-items: center; color: var(--app-muted); font-size: 15px; }
-    .menu-primary { width: 100%; min-height: 38px; margin-top: 20px; border: 1px solid rgba(245, 158, 11, 0.45); border-radius: 5px; color: #fff; background: var(--app-accent); font-weight: 650; cursor: pointer; }
+    .menu-primary { width: 100%; min-height: 38px; margin-top: 20px; border: 1px solid color-mix(in srgb, var(--app-accent) 70%, transparent); border-radius: 5px; color: #fff; background: var(--app-accent); font-weight: 650; cursor: pointer; }
     .menu-primary:hover { filter: brightness(1.08); }
     .menu-section-label { margin: 27px 0 10px; color: var(--app-subtle); font-size: 10px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
     .menu-links { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 7px; }

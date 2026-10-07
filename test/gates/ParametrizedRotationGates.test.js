@@ -273,3 +273,25 @@ suite.testUsingWebGL('formulaic_matrices', () => {
     assertThat(Gates.ParametrizedRotationGates.FormulaicRotationRy.withParam('t pi').knownMatrixAt(1)
         ).isApproximatelyEqualTo(Matrix.square(0, -1, 1, 0));
 });
+
+suite.testUsingWebGL('sixth_turn_rotations', () => {
+    assertThat(Gates.ParametrizedRotationGates.RX6.knownMatrixAt(0)).
+        isApproximatelyEqualTo(Matrix.fromPauliRotation(1/12, 0, 0));
+    assertThat(Gates.ParametrizedRotationGates.RX6i.knownMatrixAt(0)).
+        isApproximatelyEqualTo(Matrix.fromPauliRotation(-1/12, 0, 0));
+    assertThat(Gates.ParametrizedRotationGates.RY6.knownMatrixAt(0)).
+        isApproximatelyEqualTo(Matrix.fromPauliRotation(0, 1/12, 0));
+    assertThat(Gates.ParametrizedRotationGates.RZ6.knownMatrixAt(0)).
+        isApproximatelyEqualTo(Matrix.fromPauliRotation(0, 0, 1/12));
+});
+
+suite.testUsingWebGL('formulaic_rxy', () => {
+    let rxy = Gates.ParametrizedRotationGates.FormulaicRotationRxy;
+    assertThat(rxy.withParam('pi/2, 0').knownMatrixAt(0)).
+        isApproximatelyEqualTo(Matrix.fromPauliRotation(1/4, 0, 0));
+    assertThat(rxy.withParam('pi/2, pi/2').knownMatrixAt(0)).
+        isApproximatelyEqualTo(Matrix.fromPauliRotation(0, 1/4, 0));
+    assertThat(rxy.withParam('t pi, pi/4').knownMatrixAt(0.75)).
+        isApproximatelyEqualTo(Matrix.fromPauliRotation(
+            Math.sqrt(0.03125), Math.sqrt(0.03125), 0));
+});

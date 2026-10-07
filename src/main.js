@@ -234,7 +234,7 @@ const redrawNow = () => {
     canvas.style.cursor = painter.desiredCursorStyle || 'auto';
 
     let dt = displayed.get().stableDuration();
-    if (dt < Infinity) {
+    if (dt < Infinity || shown.displayedCircuit.isWireHovering(shown.hand)) {
         window.requestAnimationFrame(() => redrawThrottle.trigger());
     }
 };

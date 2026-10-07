@@ -1,3 +1,5 @@
+import {Theme} from "./Theme.js"
+
 /**
  * Copyright 2017 Google Inc.
  *
@@ -37,7 +39,7 @@ Config.GATE_FILL_COLOR = '#FFFFFF';
 Config.HIGHLIGHTED_GATE_FILL_COLOR = '#C7D9FF';
 Config.TIME_DEPENDENT_HIGHLIGHT_COLOR = '#FFF1C7';
 
-// Mixed-state displays are green.
+// Mixed-state displays use a warm plum/rose family.
 Config.DISPLAY_GATE_IN_TOOLBOX_FILL_COLOR = '#BCE8D0';
 Config.DISPLAY_GATE_BACK_COLOR = '#E5F7EC';
 Config.DISPLAY_GATE_FORE_COLOR = '#18794E';
@@ -46,7 +48,7 @@ Config.DISPLAY_GATE_FORE_COLOR = '#18794E';
 Config.OPERATION_BACK_COLOR = '#FFF6D7';
 Config.OPERATION_FORE_COLOR = '#C88700';
 
-// Pure-state displays are cyan.
+// Pure-state displays use a softer violet family.
 Config.SUPERPOSITION_BACK_COLOR = '#E6F5F7';
 Config.SUPERPOSITION_MID_COLOR = '#9ADDE2';
 Config.SUPERPOSITION_FORE_COLOR = '#16727A';
@@ -63,7 +65,7 @@ Config.WIRE_SPACING = 56;
 
 Config.BACKGROUND_COLOR = '#F7F8FA';
 Config.BACKGROUND_COLOR_CIRCUIT = '#FBFCFD';
-Config.CIRCUIT_GRID_COLOR = 'rgba(48, 54, 64, 0.07)';
+Config.CIRCUIT_GRID_COLOR = 'rgba(48, 54, 64, 0.08)';
 Config.CIRCUIT_GRID_SPACING = 28;
 Config.CIRCUIT_GUTTER_COLOR = '#EEF0F3';
 Config.CIRCUIT_LANE_COLOR = 'rgba(48, 54, 64, 0.025)';
@@ -72,7 +74,7 @@ Config.CIRCUIT_LABEL_COLOR = '#5B6572';
 Config.CIRCUIT_HEADER_COLOR = '#4C5663';
 Config.CIRCUIT_EMPTY_CARD_COLOR = '#FFFFFF';
 Config.CIRCUIT_EMPTY_CARD_BORDER_COLOR = '#D7DBE1';
-Config.CIRCUIT_ACCENT_COLOR = '#F59E0B';
+Config.CIRCUIT_ACCENT_COLOR = '#A9460C';
 
 // Toolbox layout.
 Config.BACKGROUND_COLOR_TOOLBOX = '#E6E8EC';
@@ -114,6 +116,7 @@ Config.DEFAULT_FONT_FAMILY = 'sans-serif';
 Config.DEFAULT_STROKE_THICKNESS = 1;
 
 Config.ACTIVE_THEME = 'light';
+Object.assign(Config, Theme.light);
 
 /**
  * Updates the canvas palette along with the surrounding HTML theme.
@@ -122,81 +125,7 @@ Config.ACTIVE_THEME = 'light';
  */
 Config.applyTheme = theme => {
     Config.ACTIVE_THEME = theme === 'dark' ? 'dark' : 'light';
-    if (Config.ACTIVE_THEME === 'dark') {
-        Config.GATE_FILL_COLOR = '#303640';
-        Config.HIGHLIGHTED_GATE_FILL_COLOR = '#6E4D1A';
-        Config.TIME_DEPENDENT_HIGHLIGHT_COLOR = '#6E5D31';
-        Config.DISPLAY_GATE_IN_TOOLBOX_FILL_COLOR = '#1B4A39';
-        Config.DISPLAY_GATE_BACK_COLOR = '#244C3B';
-        Config.DISPLAY_GATE_FORE_COLOR = '#A7E6C1';
-        Config.OPERATION_BACK_COLOR = '#4B3B1A';
-        Config.OPERATION_FORE_COLOR = '#FFD477';
-        Config.SUPERPOSITION_BACK_COLOR = '#163E45';
-        Config.SUPERPOSITION_MID_COLOR = '#2C8490';
-        Config.SUPERPOSITION_FORE_COLOR = '#A9EEF2';
-        Config.BACKGROUND_COLOR = '#171A1F';
-        Config.BACKGROUND_COLOR_CIRCUIT = '#1B2026';
-        Config.CIRCUIT_GRID_COLOR = 'rgba(255, 255, 255, 0.08)';
-        Config.CIRCUIT_GUTTER_COLOR = '#222830';
-        Config.CIRCUIT_LANE_COLOR = 'rgba(255, 255, 255, 0.025)';
-        Config.CIRCUIT_BORDER_COLOR = '#46515E';
-        Config.CIRCUIT_LABEL_COLOR = '#C5CCD5';
-        Config.CIRCUIT_HEADER_COLOR = '#E2E6EA';
-        Config.CIRCUIT_EMPTY_CARD_COLOR = '#252A32';
-        Config.CIRCUIT_EMPTY_CARD_BORDER_COLOR = '#56616F';
-        Config.CIRCUIT_ACCENT_COLOR = '#FDBA4A';
-        Config.BACKGROUND_COLOR_TOOLBOX = '#262C34';
-        Config.TOOLBOX_DIVIDER_COLOR = '#3B434F';
-        Config.TOOLBOX_GROUP_FILL_COLOR = '#20262D';
-        Config.TOOLBOX_GROUP_BORDER_COLOR = '#46515E';
-        Config.TOOLBOX_LABEL_COLOR = '#D5DAE1';
-        Config.GATE_BORDER_COLOR = '#8D99A8';
-        Config.GATE_SHADOW_COLOR = 'rgba(0, 0, 0, 0.32)';
-        Config.DEFAULT_FILL_COLOR = '#303640';
-        Config.DEFAULT_STROKE_COLOR = '#E5E7EB';
-        Config.DEFAULT_TEXT_COLOR = '#E5E7EB';
-        Config.TOOLTIP_BACKGROUND_COLOR = '#252A32';
-        Config.TOOLTIP_BORDER_COLOR = '#56616F';
-        Config.TOOLTIP_TITLE_COLOR = '#FDBA4A';
-        Config.TOOLTIP_TEXT_COLOR = '#E5E7EB';
-    } else {
-        Config.GATE_FILL_COLOR = '#FFFFFF';
-        Config.HIGHLIGHTED_GATE_FILL_COLOR = '#C7D9FF';
-        Config.TIME_DEPENDENT_HIGHLIGHT_COLOR = '#FFF1C7';
-        Config.DISPLAY_GATE_IN_TOOLBOX_FILL_COLOR = '#BCE8D0';
-        Config.DISPLAY_GATE_BACK_COLOR = '#E5F7EC';
-        Config.DISPLAY_GATE_FORE_COLOR = '#18794E';
-        Config.OPERATION_BACK_COLOR = '#FFF6D7';
-        Config.OPERATION_FORE_COLOR = '#C88700';
-        Config.SUPERPOSITION_BACK_COLOR = '#E6F5F7';
-        Config.SUPERPOSITION_MID_COLOR = '#9ADDE2';
-        Config.SUPERPOSITION_FORE_COLOR = '#16727A';
-        Config.BACKGROUND_COLOR = '#F7F8FA';
-        Config.BACKGROUND_COLOR_CIRCUIT = '#FBFCFD';
-        Config.CIRCUIT_GRID_COLOR = 'rgba(48, 54, 64, 0.07)';
-        Config.CIRCUIT_GUTTER_COLOR = '#EEF0F3';
-        Config.CIRCUIT_LANE_COLOR = 'rgba(48, 54, 64, 0.025)';
-        Config.CIRCUIT_BORDER_COLOR = '#D7DBE1';
-        Config.CIRCUIT_LABEL_COLOR = '#8A919B';
-        Config.CIRCUIT_HEADER_COLOR = '#687381';
-        Config.CIRCUIT_EMPTY_CARD_COLOR = '#FFFFFF';
-        Config.CIRCUIT_EMPTY_CARD_BORDER_COLOR = '#D7DBE1';
-        Config.CIRCUIT_ACCENT_COLOR = '#F59E0B';
-        Config.BACKGROUND_COLOR_TOOLBOX = '#E6E8EC';
-        Config.TOOLBOX_DIVIDER_COLOR = '#CDD2DA';
-        Config.TOOLBOX_GROUP_FILL_COLOR = '#F7F8FA';
-        Config.TOOLBOX_GROUP_BORDER_COLOR = '#D7DBE1';
-        Config.TOOLBOX_LABEL_COLOR = '#687381';
-        Config.GATE_BORDER_COLOR = '#AAB3BF';
-        Config.GATE_SHADOW_COLOR = 'rgba(31, 41, 55, 0.16)';
-        Config.DEFAULT_FILL_COLOR = '#FFFFFF';
-        Config.DEFAULT_STROKE_COLOR = '#252A32';
-        Config.DEFAULT_TEXT_COLOR = '#252A32';
-        Config.TOOLTIP_BACKGROUND_COLOR = '#FFFFFF';
-        Config.TOOLTIP_BORDER_COLOR = '#D7DBE1';
-        Config.TOOLTIP_TITLE_COLOR = '#B54708';
-        Config.TOOLTIP_TEXT_COLOR = '#252A32';
-    }
+    Object.assign(Config, Config.ACTIVE_THEME === 'dark' ? Theme.dark : Theme.light);
 };
 
 // Calling WebGLRenderingContext.getError forces a CPU/GPU sync. It's very expensive.

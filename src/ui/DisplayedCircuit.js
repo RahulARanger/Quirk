@@ -42,6 +42,11 @@ const SUPERPOSITION_GRID_LABEL_SPAN = 50;
 
 const EXTRA_COLS_FOR_SINGLE_QUBIT_DISPLAYS = 2;
 
+// Prefix stats are only needed for hovered segments that don't already have
+// an explicit display gate. Keeping them outside the painter avoids rerunning
+// the prefix simulation on every animation frame.
+const WIRE_HOVER_STATS_CACHE = new WeakMap();
+
 class DisplayedCircuit {
     /**
      *
@@ -371,6 +376,7 @@ class DisplayedCircuit {
         if (!forTooltip) {
             this._drawOutputDisplays(painter, stats, hand);
             this._drawHintLabels(painter, stats);
+            this._drawWireHoverTooltip(painter, hand, stats);
         }
 
         this._drawRowDragHighlight(painter);
@@ -419,7 +425,7 @@ class DisplayedCircuit {
             new Rect(0.5, top + 0.5, painter.width - 1, bottom - top - 1),
             Config.CIRCUIT_BORDER_COLOR);
         painter.print(
-            'QUBITS',
+            'WIRES',
             26,
             top + 14,
             'center',
@@ -438,6 +444,7 @@ class DisplayedCircuit {
      */
     _drawWires(painter, showLabels, hand) {
         let drawnWireCount = Math.min(this.circuitDefinition.numWires, (this._extraWireStartIndex || Infinity) + 1);
+        let wireHover = showLabels ? this._wireHoverAt(hand.pos) : undefined;
 
         // Initial value labels
         if (showLabels) {
@@ -485,9 +492,29 @@ class DisplayedCircuit {
             }).thenStroke(Config.DEFAULT_STROKE_COLOR);
         }
         painter.ctx.restore();
+
+        // A moving dash makes the hovered segment feel like a live state
+        // transition without changing the underlying circuit rendering.
+        if (wireHover !== undefined && wireHover.endX > wireHover.startX) {
+            let startX = wireHover.startX;
+            let endX = Math.min(wireHover.endX, painter.width - 8);
+            let y = Math.round(this.wireRect(wireHover.row).center().y - 0.5) + 0.5;
+            let phase = (Date.now() / 35) % 18;
+            painter.ctx.save();
+            painter.ctx.strokeStyle = Config.CIRCUIT_ACCENT_COLOR;
+            painter.ctx.lineWidth = 2;
+            painter.ctx.lineCap = 'round';
+            painter.ctx.setLineDash([5, 9]);
+            painter.ctx.lineDashOffset = -phase;
+            painter.ctx.beginPath();
+            painter.ctx.moveTo(startX, y);
+            painter.ctx.lineTo(endX, y);
+            painter.ctx.stroke();
+            painter.ctx.restore();
+        }
         if (this._extraWireStartIndex !== undefined && this.circuitDefinition.numWires === Config.MAX_WIRE_COUNT) {
             painter.print(
-                `(Max wires. Qubit limit is ${Config.MAX_WIRE_COUNT}.)`,
+                `(Max wires. Wire limit is ${Config.MAX_WIRE_COUNT}.)`,
                 5,
                 this.wireRect(Config.MAX_WIRE_COUNT).y,
                 'left',
@@ -497,6 +524,204 @@ class DisplayedCircuit {
                 400,
                 Config.WIRE_SPACING);
         }
+    }
+
+    /**
+     * Finds the wire segment under the pointer and identifies the state at
+     * that point. A segment after column N represents the state after column
+     * N, while the leading segment represents the initial state.
+     *
+     * @param {undefined|!Point} pos
+     * @returns {undefined|!{row: !int, col: !int, startX: !number, endX: !number}}
+     * @private
+     */
+    _wireHoverAt(pos) {
+        if (pos === undefined || pos.x < 30) {
+            return undefined;
+        }
+        let row = this.indexOfDisplayedRowAt(pos.y);
+        if (row === undefined || row >= this.importantWireCount()) {
+            return undefined;
+        }
+
+        // This tooltip is intentionally a wire-only affordance. Keep it off
+        // the output amplitude grid, the initial-state labels, and the empty
+        // space between lanes where another canvas tooltip may be active.
+        if (this._rectForSuperpositionDisplay().containsPoint(pos) ||
+                Math.abs(pos.y - this.wireRect(row).center().y) > 8) {
+            return undefined;
+        }
+
+        // Let gate hover/click affordances win when the pointer is over a
+        // gate instead of a connecting wire.
+        if (this.findGateOverlappingPos(pos) !== undefined) {
+            return undefined;
+        }
+
+        let col = -1;
+        let startX = 25;
+        let endX = Infinity;
+        for (let i = 0; i < this.circuitDefinition.columns.length; i++) {
+            let centerX = this.opRect(i).center().x;
+            if (pos.x < centerX) {
+                endX = centerX;
+                break;
+            }
+            col = i;
+            startX = centerX;
+        }
+        if (pos.x < startX || pos.x > endX) {
+            return undefined;
+        }
+        return {row, col, startX, endX};
+    }
+
+    /**
+     * @param {!Hand} hand
+     * @returns {!boolean}
+     */
+    isWireHovering(hand) {
+        return hand !== undefined && this._wireHoverAt(hand.pos) !== undefined;
+    }
+
+    /**
+     * Computes the state after a hovered column when the normal stats object
+     * does not contain a density there. CircuitStats always exposes all wires
+     * in its after-last column, so a truncated prefix gives us exactly the
+     * local state needed for this segment without changing normal stats.
+     *
+     * @param {!{row: !int, col: !int}} hover
+     * @param {!CircuitStats} stats
+     * @returns {!Matrix}
+     * @private
+     */
+    _densityAtWireHover(hover, stats) {
+        // CircuitStats stores a column's density before that column's gate is
+        // applied. The hovered segment is after hover.col, so advance by one
+        // when reading the normal stats table.
+        let density = stats.qubitDensityMatrix(hover.col + 1, hover.row);
+        if (!density.hasNaN() || hover.col < 0) {
+            return density;
+        }
+
+        let timeKey = this.circuitDefinition.stableDuration() === Infinity ?
+            'stable' :
+            Math.round(stats.time * 4) / 4;
+        let cache = WIRE_HOVER_STATS_CACHE.get(this.circuitDefinition);
+        if (cache === undefined) {
+            cache = new Map();
+            WIRE_HOVER_STATS_CACHE.set(this.circuitDefinition, cache);
+        }
+        let cacheKey = `${timeKey}:${hover.col}:${hover.row}`;
+        if (!cache.has(cacheKey)) {
+            let prefix = this.circuitDefinition.withColumns(
+                this.circuitDefinition.columns.slice(0, hover.col + 1));
+            let prefixStats = CircuitStats.fromCircuitAtTime(prefix, stats.time);
+            cache.set(cacheKey, prefixStats.qubitDensityMatrix(prefix.columns.length, hover.row));
+        }
+        return cache.get(cacheKey);
+    }
+
+    /**
+     * @param {!Painter} painter
+     * @param {!Hand} hand
+     * @param {!CircuitStats} stats
+     * @private
+     */
+    _drawWireHoverTooltip(painter, hand, stats) {
+        let hover = this._wireHoverAt(hand.pos);
+        if (hover === undefined) {
+            return;
+        }
+
+        let density = this._densityAtWireHover(hover, stats);
+        if (density === undefined || density.hasNaN()) {
+            return;
+        }
+        let raw = density.rawBuffer();
+        let p0 = Math.max(0, Math.min(1, raw[0]));
+        let p1 = Math.max(0, Math.min(1, raw[6]));
+        let alphaMagnitude = Math.sqrt(p0);
+        let betaMagnitude = Math.sqrt(p1);
+        let coherenceMagnitude = Math.hypot(raw[2], raw[3]);
+        let isPureEnough = Math.abs(coherenceMagnitude * coherenceMagnitude - p0 * p1) < 0.02;
+        let relativePhase = -Math.atan2(raw[3], raw[2]) * 180 / Math.PI;
+        let format = Format.SIMPLIFIED;
+        let gateLabel;
+        if (hover.col < 0) {
+            gateLabel = 'initial state';
+        } else {
+            let gate = this.circuitDefinition.gateInSlot(hover.col, hover.row);
+            if (gate === undefined) {
+                let covered = this.circuitDefinition.findGateCoveringSlot(hover.col, hover.row);
+                gate = covered === undefined ? undefined : covered.gate;
+            }
+            gateLabel = gate === undefined ?
+                `after column ${hover.col + 1}` :
+                gate.name || gate.symbol || `after column ${hover.col + 1}`;
+        }
+
+        let card = new Rect(
+            Math.min(hand.pos.x + 16, painter.width - 222),
+            hand.pos.y + 16,
+            210,
+            84).snapInside(painter.paintableArea().paddedBy(-8));
+        let ctx = painter.ctx;
+        ctx.save();
+        ctx.fillStyle = Config.TOOLTIP_BACKGROUND_COLOR;
+        ctx.strokeStyle = Config.TOOLTIP_BORDER_COLOR;
+        ctx.lineWidth = 1;
+        if (typeof ctx.roundRect === 'function') {
+            ctx.beginPath();
+            ctx.roundRect(card.x, card.y, card.w, card.h, 8);
+            ctx.fill();
+            ctx.stroke();
+        } else {
+            ctx.fillRect(card.x, card.y, card.w, card.h);
+            ctx.strokeRect(card.x, card.y, card.w, card.h);
+        }
+        ctx.restore();
+
+        painter.print(
+            `Wire ${hover.row} · ${gateLabel}`,
+            card.x + 10,
+            card.y + 17,
+            'left',
+            'middle',
+            Config.TOOLTIP_TITLE_COLOR,
+            '12px bold sans-serif',
+            card.w - 20,
+            18);
+        painter.print(
+            `P(0) ${format.formatFloat(p0 * 100)}%   |α| ${format.formatFloat(alphaMagnitude)}`,
+            card.x + 10,
+            card.y + 39,
+            'left',
+            'middle',
+            Config.TOOLTIP_TEXT_COLOR,
+            '11px sans-serif',
+            card.w - 20,
+            16);
+        painter.print(
+            `P(1) ${format.formatFloat(p1 * 100)}%   |β| ${format.formatFloat(betaMagnitude)}`,
+            card.x + 10,
+            card.y + 56,
+            'left',
+            'middle',
+            Config.TOOLTIP_TEXT_COLOR,
+            '11px sans-serif',
+            card.w - 20,
+            16);
+        painter.print(
+            isPureEnough ? `relative phase ${format.formatFloat(relativePhase)}°` : 'mixed local state',
+            card.x + 10,
+            card.y + 73,
+            'left',
+            'middle',
+            Config.TOOLTIP_TEXT_COLOR,
+            '10px sans-serif',
+            card.w - 20,
+            14);
     }
 
     /**

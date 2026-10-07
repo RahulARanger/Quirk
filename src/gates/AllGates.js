@@ -352,6 +352,15 @@ Gates.BottomToolboxGroups = [
             SqrtImaginaryGate, AntiSqrtImaginaryGate,
         ]
     },
+    {
+        hint: 'Rotations',
+        gates: [
+            ParametrizedRotationGates.RX6, ParametrizedRotationGates.RX6i,
+            ParametrizedRotationGates.RY6, ParametrizedRotationGates.RY6i,
+            ParametrizedRotationGates.RZ6, ParametrizedRotationGates.RZ6i,
+            ParametrizedRotationGates.FormulaicRotationRxy, undefined,
+        ]
+    },
 ];
 
 /** @type {!Map.<undefined|!string, !Array.<!Gate>>} */

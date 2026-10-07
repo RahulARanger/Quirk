@@ -27,7 +27,7 @@ import {Util} from "../base/Util.js"
  */
 class GatePainting {}
 
-const GATE_SYMBOL_FONT = '16px sans-serif';
+const GATE_SYMBOL_FONT = '600 16px sans-serif';
 
 GatePainting.paintOutline = args => {
     let drawRoundedRect = () => {
@@ -47,10 +47,10 @@ GatePainting.paintOutline = args => {
         args.painter.strokeLine(r.bottomLeft(), r.bottomRight());
     }
     args.painter.ctx.save();
-    args.painter.ctx.strokeStyle = Config.GATE_BORDER_COLOR;
-    args.painter.ctx.lineWidth = 1;
+    args.painter.ctx.strokeStyle = args.isHighlighted ? Config.CIRCUIT_ACCENT_COLOR : Config.GATE_BORDER_COLOR;
+    args.painter.ctx.lineWidth = args.isHighlighted ? 1.5 : 1;
     args.painter.ctx.shadowColor = Config.GATE_SHADOW_COLOR;
-    args.painter.ctx.shadowBlur = 3;
+    args.painter.ctx.shadowBlur = args.isHighlighted ? 4 : 2;
     args.painter.ctx.shadowOffsetY = 1;
     drawRoundedRect();
     args.painter.ctx.restore();
@@ -63,11 +63,11 @@ GatePainting.paintBackground =
             backColor = Config.HIGHLIGHTED_GATE_FILL_COLOR;
         }
         let r = args.rect;
-        let radius = Math.min(6, r.w / 4, r.h / 4);
+        let radius = Math.min(7, r.w / 4, r.h / 4);
         args.painter.ctx.save();
         args.painter.ctx.fillStyle = themeColor(backColor);
         args.painter.ctx.shadowColor = Config.GATE_SHADOW_COLOR;
-        args.painter.ctx.shadowBlur = 4;
+        args.painter.ctx.shadowBlur = args.isHighlighted ? 5 : 3;
         args.painter.ctx.shadowOffsetY = 1;
         args.painter.ctx.beginPath();
         if (typeof args.painter.ctx.roundRect === 'function') {
@@ -136,11 +136,11 @@ GatePainting.paintResizeTab = args => {
     let trimRect = rect.skipLeft(2).skipRight(2);
     let {x: cx, y: cy} = trimRect.center();
     let backColor = args.isResizeHighlighted ? Config.HIGHLIGHTED_GATE_FILL_COLOR : Config.GATE_FILL_COLOR;
-    let foreColor = args.isResizeHighlighted ? Config.DEFAULT_TEXT_COLOR : 'gray';
+    let foreColor = args.isResizeHighlighted ? Config.DEFAULT_TEXT_COLOR : Config.TOOLBOX_LABEL_COLOR;
     args.painter.ctx.save();
     args.painter.ctx.globalAlpha *= args.isResizeHighlighted ? 1 : 0.7;
     args.painter.fillRect(trimRect, backColor);
-    args.painter.strokeRect(trimRect, 'gray');
+    args.painter.strokeRect(trimRect, Config.GATE_BORDER_COLOR);
     args.painter.ctx.restore();
     args.painter.print('resize', cx, cy, 'center', 'middle', foreColor, 'monospace', trimRect.w - 4, trimRect.h - 4);
     args.painter.trace(tracer => {
@@ -345,7 +345,16 @@ GatePainting.SECTIONED_DRAWER_MAKER = (labels, dividers) => args => {
     GatePainting.paintResizeTab(args);
 };
 
-const DISPLAY_GATE_DEFAULT_DRAWER = GatePainting.MAKE_HIGHLIGHTED_DRAWER(Config.DISPLAY_GATE_IN_TOOLBOX_FILL_COLOR);
+// Read the palette when the gate is painted instead of when this module is
+// loaded. The theme can change after the gate drawer is created, and keeping
+// the initial light-theme color makes display labels lose contrast in dark
+// mode.
+const DISPLAY_GATE_DEFAULT_DRAWER = args => {
+    GatePainting.paintBackground(args, Config.DISPLAY_GATE_IN_TOOLBOX_FILL_COLOR);
+    GatePainting.paintOutline(args);
+    GatePainting.paintResizeTab(args);
+    GatePainting.paintGateSymbol(args);
+};
 
 GatePainting.makeDisplayDrawer = statePainter => args => {
     if (args.positionInCircuit === undefined) {
@@ -431,7 +440,7 @@ GatePainting.paintCycleState = (args, angle, xScale=1, yScale=1, zeroAngle=0) =>
     args.painter.ctx.scale(-xScale, -yScale);
     args.painter.ctx.rotate(zeroAngle);
     args.painter.ctx.strokeStyle = Config.DEFAULT_STROKE_COLOR;
-    args.painter.ctx.fillStyle = 'yellow';
+    args.painter.ctx.fillStyle = Config.OPERATION_FORE_COLOR;
     args.painter.ctx.globalAlpha *= 0.4;
 
     args.painter.ctx.beginPath();
@@ -487,18 +496,20 @@ GatePainting.paintGateButton = args => {
 
     let buttonRect = GatePainting.gateButtonRect(args.rect);
     let buttonFocus = !args.focusPoints.every(pt => !buttonRect.containsPoint(pt));
-    args.painter.fillRect(buttonRect, buttonFocus ? 'red' : 'orange');
+    let buttonFill = buttonFocus ? Config.CIRCUIT_ACCENT_COLOR : Config.HIGHLIGHTED_GATE_FILL_COLOR;
+    let buttonText = buttonFocus ? '#FFFFFF' : Config.DEFAULT_TEXT_COLOR;
+    args.painter.fillRect(buttonRect, buttonFill);
     args.painter.print(
         'change',
         buttonRect.center().x,
         buttonRect.center().y,
         'center',
         'middle',
-        Config.DEFAULT_TEXT_COLOR,
-        '12px sans-serif',
+        buttonText,
+        '600 12px sans-serif',
         buttonRect.w,
         buttonRect.h);
-    args.painter.strokeRect(buttonRect, Config.DEFAULT_STROKE_COLOR);
+    args.painter.strokeRect(buttonRect, Config.CIRCUIT_ACCENT_COLOR);
 };
 
 
