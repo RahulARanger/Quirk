@@ -21,3 +21,17 @@ All submissions, including submissions by project members, require review. We
 use GitHub pull requests for this purpose. Consult
 [GitHub Help](https://help.github.com/articles/about-pull-requests/) for more
 information on using pull requests.
+
+## Downstream academic/research work
+
+This checkout is a downstream project built on top of
+[Strilanc/Quirk](https://github.com/Strilanc/Quirk). Contributions should be
+focused on the requirements of this academic and research adaptation and
+should preserve the upstream attribution, copyright notices, and Apache
+License.
+
+When opening a pull request, explain the purpose of the change, identify any
+behavior that was modified, and include the verification commands that were
+run. This project is for academic and research purposes only; do not present
+it as official upstream work or as production, commercial, operational, or
+safety-critical software.

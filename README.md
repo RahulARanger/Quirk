@@ -7,6 +7,18 @@ Quirk is a toy quantum circuit simulator, intended to help people in learning ab
 If you want to quickly explore the behavior of a small quantum circuit, Quirk is the tool for you.
 There's no installing or configuring or scripting: just go to **[algassert.com/quirk](http://algassert.com/quirk)**, drag gates onto the circuit, and the output displays will update in real time.
 
+## Downstream project notice
+
+This repository is based on the existing [Strilanc/Quirk upstream
+repository](https://github.com/Strilanc/Quirk). We are working on top of that
+project and modifying this repository to meet our own academic and research
+requirements. It is not an official upstream Quirk project.
+
+This downstream project is maintained solely for academic and research
+purposes and nothing else. It is not intended for production, commercial,
+operational, or safety-critical use. Please retain the upstream attribution,
+copyright notices, and `LICENSE` when modifying or sharing this work.
+
 (If you're still trying to understand what a quantum circuit *even is*, then I recommend the video series [Quantum Computing for the Determined](https://www.youtube.com/playlist?list=PL1826E60FD05B44E4).
 Quirk assumes you already know background facts like "each wire represents a qubit".)
 
