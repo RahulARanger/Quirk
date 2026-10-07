@@ -83,11 +83,17 @@ If you want to modify Quirk, this is how you get the code and turn your changes 
 
     `npm run build`
 
-6. Confirm the output works by opening `out/quirk.html` with a web browser.
+6. Build and open the output in the default browser, then exit the command.
+
+    `npm run build:open`
+
+   This is a one-shot command: it does not start or leave a local development server running.
+
+7. Alternatively, confirm the output works by opening `out/quirk.html` with a web browser.
 
     `firefox out/quirk.html`
 
-7. Copy `out/quirk.html` to wherever you want.
+8. Copy `out/quirk.html` to wherever you want.
 
 # Disclaimer
 

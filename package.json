@@ -25,6 +25,7 @@
   },
   "scripts": {
     "build": "grunt build-src",
+    "build:open": "npm run build && open out/quirk.html",
     "test": "grunt test",
     "test-chrome": "grunt test-chrome",
     "test-firefox": "grunt test-firefox",

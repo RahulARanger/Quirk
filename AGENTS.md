@@ -33,7 +33,11 @@ The project uses Node.js, npm, and Grunt. From the repository root:
 npm install
 npm test
 npm run build
+npm run build:open
 ```
+
+`npm run build:open` builds `out/quirk.html`, opens it in the default browser,
+and exits without starting a persistent development server.
 
 When a change affects browser behavior, also run the applicable browser test
 command (`npm run test-chrome` or `npm run test-firefox`) when the required
