@@ -18,6 +18,7 @@ import {Suite, assertThat, assertThrows} from "../TestUtil.js"
 import {DisplayedCircuit} from "../../src/ui/DisplayedCircuit.js"
 
 import {CircuitDefinition} from "../../src/circuit/CircuitDefinition.js"
+import {GateColumn} from "../../src/circuit/GateColumn.js"
 import {CircuitStats} from "../../src/circuit/CircuitStats.js"
 import {Gates} from "../../src/gates/AllGates.js"
 import {Point} from "../../src/math/Point.js"
@@ -313,6 +314,21 @@ suite.test("resizeQft", () => {
                                                                            /
                                                                            /
                                                                            /`));
+});
+
+suite.test("tidyShrinksUnusedWiresAfterGateRemoval", () => {
+    let elongatedCircuit = new CircuitDefinition(
+        6,
+        [new GateColumn([
+            Gates.HalfTurns.H,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined])]);
+    let displayed = DisplayedCircuit.empty(0).withCircuit(elongatedCircuit);
+
+    assertThat(displayed.afterTidyingUp().circuitDefinition.numWires).isEqualTo(2);
 });
 
 suite.test("dragQft", () => {

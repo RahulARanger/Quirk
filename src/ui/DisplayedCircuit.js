@@ -326,13 +326,20 @@ class DisplayedCircuit {
      * @returns {!DisplayedCircuit}
      */
     afterTidyingUp() {
+        let tidiedCircuit = this.circuitDefinition.
+            withUncoveredColumnsRemoved().
+            withHeightOverlapsFixed().
+            withWidthOverlapsFixed().
+            withUncoveredColumnsRemoved().
+            withTrailingSpacersIncluded();
+        // Resizing a gate can temporarily increase the wire count. Once that
+        // gate is removed, discard the now-unused trailing wires so the board
+        // can shrink back to the circuit's actual content.
+        tidiedCircuit = tidiedCircuit.withWireCount(Math.max(
+            Config.MIN_WIRE_COUNT,
+            tidiedCircuit.minimumRequiredWireCount()));
         return this.
-            withCircuit(this.circuitDefinition.
-                withUncoveredColumnsRemoved().
-                withHeightOverlapsFixed().
-                withWidthOverlapsFixed().
-                withUncoveredColumnsRemoved().
-                withTrailingSpacersIncluded()).
+            withCircuit(tidiedCircuit).
             _withCompressedColumnIndex(undefined).
             _withExtraWireStartIndex(undefined).
             _withHighlightedSlot(undefined);
