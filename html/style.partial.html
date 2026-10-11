@@ -87,6 +87,37 @@
     .app-dialog-button-primary { color: #fff; background: var(--app-accent); border-color: var(--app-accent); }
     .app-dialog-button-primary:hover { color: #fff; filter: brightness(1.08); }
 
+    .export-layer { position: fixed; inset: 0; z-index: 1002; overflow: auto; padding: clamp(16px, 4vw, 48px); }
+    .export-overlay { position: fixed; inset: 0; background: var(--app-dialog-overlay); backdrop-filter: blur(5px); }
+    .export-dialog { position: relative; z-index: 1; width: min(860px, calc(100vw - 32px)); max-height: calc(100vh - 32px); margin: auto; overflow: auto; padding: 22px; color: var(--app-text); background: var(--app-surface); border: 1px solid var(--app-border); border-radius: 12px; box-shadow: 0 24px 70px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.05); }
+    .export-dialog-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; margin-bottom: 18px; }
+    .export-dialog-kicker { color: var(--app-accent); font-size: 10px; font-weight: 750; letter-spacing: 0.12em; }
+    .export-dialog h2 { margin: 3px 0 5px; color: var(--app-text); font-size: 20px; letter-spacing: -0.025em; }
+    .export-dialog-header p { margin: 0; color: var(--app-muted); font-size: 12px; line-height: 1.45; }
+    .export-close-button { display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border: 1px solid var(--app-border); border-radius: 7px; color: var(--app-muted); background: transparent; font-size: 21px; line-height: 1; cursor: pointer; }
+    .export-close-button:hover { color: var(--app-text); background: var(--app-surface-hover); border-color: var(--app-accent); }
+    .export-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .export-card { display: flex; flex-direction: column; min-width: 0; padding: 14px; border: 1px solid var(--app-border-soft); border-radius: 9px; background: var(--app-surface-raised); }
+    .export-card-wide { grid-column: 1 / -1; }
+    .export-card-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; min-height: 47px; }
+    .export-card h3 { margin: 0; color: var(--app-text); font-size: 13px; letter-spacing: -0.01em; }
+    .export-card p { margin: 4px 0 0; color: var(--app-muted); font-size: 11px; line-height: 1.45; }
+    .export-card-icon { display: grid; place-items: center; flex: 0 0 auto; width: 28px; height: 28px; border: 1px solid color-mix(in srgb, var(--app-accent) 36%, var(--app-border)); border-radius: 7px; color: var(--app-accent); font: 650 12px ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .export-code-block { min-width: 0; margin: 12px 0 10px; padding: 9px 10px; overflow: auto; border: 1px solid var(--app-border); border-radius: 6px; color: var(--app-text); background: var(--app-bg); font: 11px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace; box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.16); }
+    .export-link-block { min-height: 50px; max-height: 80px; overflow-wrap: anywhere; word-break: break-word; }
+    .export-link-block a { color: var(--app-accent); }
+    .export-preview { min-height: 96px; max-height: 150px; margin-top: 12px; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .export-card-actions { display: flex; align-items: center; gap: 9px; margin-top: auto; }
+    .export-button { min-height: 30px; padding: 5px 10px; border: 1px solid var(--app-border); border-radius: 6px; color: var(--app-text); background: var(--app-surface); font-size: 11px; font-weight: 650; cursor: pointer; white-space: nowrap; transition: color 120ms ease, background 120ms ease, border-color 120ms ease, transform 120ms ease; }
+    .export-button:hover:not(:disabled) { background: var(--app-surface-hover); border-color: var(--app-accent); transform: translateY(-1px); }
+    .export-button:active:not(:disabled) { transform: translateY(0); }
+    .export-button:disabled { cursor: default; opacity: 0.55; }
+    .export-button-primary { width: 100%; color: #fff; background: var(--app-accent); border-color: var(--app-accent); text-align: left; }
+    .export-button-primary:hover:not(:disabled) { color: #fff; background: color-mix(in srgb, var(--app-accent) 88%, #fff); border-color: color-mix(in srgb, var(--app-accent) 88%, #fff); }
+    .export-result { min-height: 16px; color: var(--app-accent); font-size: 11px; }
+    .export-option { display: flex; align-items: center; gap: 7px; margin: 9px 0 0; color: var(--app-muted); font-size: 11px; }
+    .export-option input { accent-color: var(--app-accent); }
+
     .quirk-toolbar {
         display: flex;
         align-items: center;
@@ -315,6 +346,10 @@
         .forge-dialog { width: calc(100vw - 20px); margin: 10px auto; padding: 14px; }
         .forge-dialog-header { margin-bottom: 10px; }
         .forge-table { min-width: 850px; }
+        .export-layer { padding: 10px; }
+        .export-dialog { width: calc(100vw - 20px); max-height: calc(100vh - 20px); padding: 14px; }
+        .export-grid { grid-template-columns: 1fr; }
+        .export-card-wide { grid-column: auto; }
         #menu-div { padding: 10px; }
         .menu-shell { grid-template-columns: 1fr; }
         .menu-card { padding: 22px; }

@@ -1,33 +1,77 @@
-<div id="export-div" style="display:none;">
-    <div id="export-overlay" style="position:fixed; left: 0; top: 0; height: 100vh; width: 100vw; background: rgba(0, 0, 0, 0.7);">
-    </div>
-    <div style="position: absolute; top: 20px; left: 50px; padding: 20px; background-color: white; border: 1px solid black;">
-        <strong>Escaped Link</strong> - Link to current circuit, without special characters that confuse forums.
-        <div style="margin: 10px 0 30px 20px;">
-            <button tabindex="100" id="export-link-copy-button">Copy to Clipboard</button>&nbsp;&nbsp;<span id="export-link-copy-result"></span>
-            <div style="overflow:auto; word-wrap:break-word; max-height:60px; max-width:600px; border: 1px solid black; padding: 10px; margin: 2px;"><a tabindex="101" id="export-escaped-anchor"></a></div>
+<div id="export-div" class="export-layer" style="display:none;">
+    <div id="export-overlay" class="export-overlay"></div>
+    <section class="export-dialog" role="dialog" aria-modal="true" aria-labelledby="export-title" aria-describedby="export-description">
+        <div class="export-dialog-header">
+            <div>
+                <div class="export-dialog-kicker">EXPORT CIRCUIT</div>
+                <h2 id="export-title">Export your circuit</h2>
+                <p id="export-description">Choose a format to share, save, or inspect the current circuit.</p>
+            </div>
+            <button id="export-close-button" class="export-close-button" type="button" aria-label="Close Export">×</button>
         </div>
 
-        <strong>Offline Copy</strong> - Html file containing Quirk and the current circuit.
-        <div style="margin: 10px 0 30px 20px;">
-            <button tabindex="102" id="download-offline-copy-button" style="width:600px; height:60px;">Download ...</button>
-        </div>
+        <div class="export-grid">
+            <section class="export-card export-card-wide" aria-labelledby="export-link-title">
+                <div class="export-card-heading">
+                    <div>
+                        <h3 id="export-link-title">Shareable link</h3>
+                        <p>Link to the current circuit with special characters escaped.</p>
+                    </div>
+                    <span class="export-card-icon" aria-hidden="true">↗</span>
+                </div>
+                <div class="export-code-block export-link-block">
+                    <a tabindex="101" id="export-escaped-anchor"></a>
+                </div>
+                <div class="export-card-actions">
+                    <button tabindex="100" id="export-link-copy-button" class="export-button" type="button">Copy link</button>
+                    <span id="export-link-copy-result" class="export-result" aria-live="polite"></span>
+                </div>
+            </section>
 
-        <strong>Circuit JSON</strong> - Parsable representation of current circuit.
-        <div style="margin: 10px 0 0 20px;">
-            <button tabindex="103" id="export-json-copy-button">Copy to Clipboard</button>&nbsp;&nbsp;<span id="export-json-copy-result"></span>
-            <br>
-            <pre tabindex="104" id="export-circuit-json-pre" style="overflow:auto; max-width:600px; max-height:60px; border: 1px solid black; padding:5px; margin:2px;"></pre>
-        </div>
+            <section class="export-card export-card-wide export-download-card" aria-labelledby="export-offline-title">
+                <div class="export-card-heading">
+                    <div>
+                        <h3 id="export-offline-title">Offline copy</h3>
+                        <p>Download a standalone HTML file containing Quirk and this circuit.</p>
+                    </div>
+                    <span class="export-card-icon" aria-hidden="true">↓</span>
+                </div>
+                <button tabindex="102" id="download-offline-copy-button" class="export-button export-button-primary" type="button">Download ...</button>
+            </section>
 
-        <br>
-        <strong>Simulation Data JSON</strong> - Output amplitudes, detector results, display data, etc.
-        <div style="margin: 10px 0 0 20px;">
-            <button tabindex="105" id="export-amplitudes-button">Generate and Copy to Clipboard</button>&nbsp;<span id="export-amplitudes-result"></span>
-            <input type="checkbox" tabindex="106" id="export-amplitudes-use-amps" style="float: right; margin-right: 10px;">
-            <label style="float: right" for="export-amplitudes-use-amps">Skip output amplitudes</label>
-            <br>
-            <pre tabindex="107" id="export-amplitudes-pre" style="overflow:auto; max-width:600px; max-height:60px; border: 1px solid black; padding:5px; margin:2px;"></pre>
+            <section class="export-card" aria-labelledby="export-json-title">
+                <div class="export-card-heading">
+                    <div>
+                        <h3 id="export-json-title">Circuit JSON</h3>
+                        <p>Parsable representation of the current circuit.</p>
+                    </div>
+                    <span class="export-card-icon" aria-hidden="true">{ }</span>
+                </div>
+                <pre tabindex="104" id="export-circuit-json-pre" class="export-code-block export-preview"></pre>
+                <div class="export-card-actions">
+                    <button tabindex="103" id="export-json-copy-button" class="export-button" type="button">Copy JSON</button>
+                    <span id="export-json-copy-result" class="export-result" aria-live="polite"></span>
+                </div>
+            </section>
+
+            <section class="export-card" aria-labelledby="export-simulation-title">
+                <div class="export-card-heading">
+                    <div>
+                        <h3 id="export-simulation-title">Simulation data</h3>
+                        <p>Output amplitudes, detector results, and display data.</p>
+                    </div>
+                    <span class="export-card-icon" aria-hidden="true">∿</span>
+                </div>
+                <div class="export-option">
+                    <input type="checkbox" tabindex="106" id="export-amplitudes-use-amps">
+                    <label for="export-amplitudes-use-amps">Skip output amplitudes</label>
+                </div>
+                <pre tabindex="107" id="export-amplitudes-pre" class="export-code-block export-preview">[not generated yet]</pre>
+                <div class="export-card-actions">
+                    <button tabindex="105" id="export-amplitudes-button" class="export-button" type="button">Generate and copy</button>
+                    <span id="export-amplitudes-result" class="export-result" aria-live="polite"></span>
+                </div>
+            </section>
         </div>
-    </div>
+    </section>
 </div>

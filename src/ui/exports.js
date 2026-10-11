@@ -35,9 +35,11 @@ function initExports(revision, mostRecentStats, obsIsAnyOverlayShowing) {
         const exportButton = /** @type {!HTMLButtonElement} */ document.getElementById('export-button');
         const exportOverlay = /** @type {!HTMLDivElement} */ document.getElementById('export-overlay');
         const exportDiv = /** @type {HTMLDivElement} */ document.getElementById('export-div');
+        const closeButton = /** @type {!HTMLButtonElement} */ document.getElementById('export-close-button');
         exportButton.addEventListener('click', () => exportsIsVisible.set(true));
         obsIsAnyOverlayShowing.subscribe(e => { exportButton.disabled = e; });
         exportOverlay.addEventListener('click', () => exportsIsVisible.set(false));
+        closeButton.addEventListener('click', () => exportsIsVisible.set(false));
         document.addEventListener('keydown', e => {
             const ESC_KEY = 27;
             if (e.keyCode === ESC_KEY) {
@@ -47,7 +49,7 @@ function initExports(revision, mostRecentStats, obsIsAnyOverlayShowing) {
         obsExportsIsShowing.subscribe(showing => {
             exportDiv.style.display = showing ? 'block' : 'none';
             if (showing) {
-                document.getElementById('export-link-copy-button').focus();
+                closeButton.focus();
             }
         });
     })();
