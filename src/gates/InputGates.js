@@ -27,7 +27,7 @@ let InputGates = {};
  * @param {!boolean} reverse
  */
 function drawInputGate(args, key, reverse) {
-    GatePainting.paintBackground(args, '#DDD', '#DDD');
+    GatePainting.paintBackground(args, undefined, '#DDD');
     if (args.isInToolbox) {
         GatePainting.paintOutline(args);
     } else {
@@ -36,6 +36,8 @@ function drawInputGate(args, key, reverse) {
     GatePainting.paintResizeTab(args);
 
     let {x, y} = args.rect.center();
+    let font = args.isInToolbox ? '600 12px sans-serif' : '16px sans-serif';
+    let lineHeight = args.isInToolbox ? args.rect.h / 2 - 4 : args.rect.h / 2;
     args.painter.print(
         'input',
         x,
@@ -43,9 +45,9 @@ function drawInputGate(args, key, reverse) {
         'center',
         'bottom',
         'black',
-        '16px sans-serif',
+        font,
         args.rect.w - 2,
-        args.rect.h / 2);
+        lineHeight);
     args.painter.print(
         key + (reverse ? '[::-1]' : ''),
         x,
@@ -53,9 +55,9 @@ function drawInputGate(args, key, reverse) {
         'center',
         'top',
         'black',
-        '16px sans-serif',
+        font,
         args.rect.w - 2,
-        args.rect.h / 2);
+        lineHeight);
 }
 
 let makeInputGate = (key, reverse) => Gate.buildFamily(1, 16, (span, builder) => builder.
@@ -92,7 +94,7 @@ let makeSetInputGate = key => new GateBuilder().
         sticky: true
     }]).
     setDrawer(args => {
-        GatePainting.paintLocationIndependentFrame(args, '#EEE', '#EEE');
+        GatePainting.paintLocationIndependentFrame(args, '#EEE');
         if (args.isInToolbox) {
             GatePainting.paintGateSymbol(args, `${key}=#\ndefault`);
         } else {

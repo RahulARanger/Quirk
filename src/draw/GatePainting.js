@@ -28,11 +28,12 @@ import {Util} from "../base/Util.js"
 class GatePainting {}
 
 const GATE_SYMBOL_FONT = '600 16px sans-serif';
+const TOOLBOX_GATE_SYMBOL_FONT = '600 12px sans-serif';
 
 GatePainting.paintOutline = args => {
     let drawRoundedRect = () => {
         let r = args.rect;
-        let radius = Math.min(6, r.w / 4, r.h / 4);
+        let radius = Math.min(args.isInToolbox ? 8 : 6, r.w / 4, r.h / 4);
         args.painter.ctx.beginPath();
         if (typeof args.painter.ctx.roundRect === 'function') {
             args.painter.ctx.roundRect(r.x, r.y, r.w, r.h, radius);
@@ -41,33 +42,29 @@ GatePainting.paintOutline = args => {
         }
         args.painter.ctx.stroke();
     };
-    if (args.isInToolbox) {
-        let r = args.rect.shiftedBy(0.5, 0.5);
-        args.painter.strokeLine(r.topRight(), r.bottomRight());
-        args.painter.strokeLine(r.bottomLeft(), r.bottomRight());
-    }
     args.painter.ctx.save();
-    args.painter.ctx.strokeStyle = args.isHighlighted ? Config.CIRCUIT_ACCENT_COLOR : Config.GATE_BORDER_COLOR;
-    args.painter.ctx.lineWidth = args.isHighlighted ? 1.5 : 1;
+    args.painter.ctx.strokeStyle = args.isHighlighted ? Config.CIRCUIT_ACCENT_COLOR :
+        args.isInToolbox ? Config.TOOLBOX_GATE_BORDER_COLOR : Config.GATE_BORDER_COLOR;
+    args.painter.ctx.lineWidth = args.isHighlighted ? 1.75 : args.isInToolbox ? 1.25 : 1;
     args.painter.ctx.shadowColor = Config.GATE_SHADOW_COLOR;
-    args.painter.ctx.shadowBlur = args.isHighlighted ? 4 : 2;
+    args.painter.ctx.shadowBlur = args.isHighlighted ? 7 : args.isInToolbox ? 3 : 2;
     args.painter.ctx.shadowOffsetY = 1;
     drawRoundedRect();
     args.painter.ctx.restore();
 };
 
 GatePainting.paintBackground =
-    (args, toolboxFillColor = Config.GATE_FILL_COLOR, normalFillColor = Config.GATE_FILL_COLOR) => {
+    (args, toolboxFillColor = Config.TOOLBOX_GATE_FILL_COLOR, normalFillColor = Config.GATE_FILL_COLOR) => {
         let backColor = args.isInToolbox ? toolboxFillColor : normalFillColor;
         if (args.isHighlighted) {
-            backColor = Config.HIGHLIGHTED_GATE_FILL_COLOR;
+            backColor = args.isInToolbox ? Config.TOOLBOX_GATE_HIGHLIGHT_COLOR : Config.HIGHLIGHTED_GATE_FILL_COLOR;
         }
         let r = args.rect;
-        let radius = Math.min(7, r.w / 4, r.h / 4);
+        let radius = Math.min(args.isInToolbox ? 8 : 7, r.w / 4, r.h / 4);
         args.painter.ctx.save();
         args.painter.ctx.fillStyle = themeColor(backColor);
         args.painter.ctx.shadowColor = Config.GATE_SHADOW_COLOR;
-        args.painter.ctx.shadowBlur = args.isHighlighted ? 5 : 3;
+        args.painter.ctx.shadowBlur = args.isHighlighted ? 8 : args.isInToolbox ? 4 : 3;
         args.painter.ctx.shadowOffsetY = 1;
         args.painter.ctx.beginPath();
         if (typeof args.painter.ctx.roundRect === 'function') {
@@ -101,7 +98,7 @@ GatePainting.LABEL_DRAWER = args => {
  */
 GatePainting.MAKE_HIGHLIGHTED_DRAWER =
     (toolboxFillColor = undefined, normalFillColor = undefined) => args => {
-        let actualToolboxFillColor = toolboxFillColor === undefined ? Config.GATE_FILL_COLOR : toolboxFillColor;
+        let actualToolboxFillColor = toolboxFillColor === undefined ? Config.TOOLBOX_GATE_FILL_COLOR : toolboxFillColor;
         let actualNormalFillColor = normalFillColor === undefined ? Config.GATE_FILL_COLOR : normalFillColor;
         GatePainting.paintBackground(args, actualToolboxFillColor, actualNormalFillColor);
         GatePainting.paintOutline(args);
@@ -167,12 +164,13 @@ GatePainting.paintResizeTab = args => {
  */
 GatePainting.paintGateSymbol = (args, symbolOverride=undefined, allowExponent=true) => {
     let painter = args.painter;
-    let rect = args.rect.paddedBy(-2);
+    let rect = args.rect.paddedBy(args.isInToolbox ? -3 : -2);
     if (symbolOverride === undefined) {
         symbolOverride = args.gate.symbol;
     }
-    let {symbol, offsetY} = _paintSymbolHandleLines(args.painter, symbolOverride, rect);
-    painter.ctx.font = GATE_SYMBOL_FONT;  // So that measure-text calls return the right stuff.
+    let symbolFont = args.isInToolbox ? TOOLBOX_GATE_SYMBOL_FONT : GATE_SYMBOL_FONT;
+    let {symbol, offsetY} = _paintSymbolHandleLines(args.painter, symbolOverride, rect, symbolFont);
+    painter.ctx.font = symbolFont;  // So that measure-text calls return the right stuff.
 
     let splitIndex = allowExponent ? symbol.indexOf('^') : -1;
     let parts = splitIndex === -1 ? [symbol] : [symbol.substr(0, splitIndex), symbol.substr(splitIndex + 1)];
@@ -184,7 +182,7 @@ GatePainting.paintGateSymbol = (args, symbolOverride=undefined, allowExponent=tr
             'center',
             'middle',
             Config.DEFAULT_TEXT_COLOR,
-            GATE_SYMBOL_FONT,
+            symbolFont,
             rect.w,
             rect.h);
         return;
@@ -205,7 +203,7 @@ GatePainting.paintGateSymbol = (args, symbolOverride=undefined, allowExponent=tr
         'right',
         'hanging',
         Config.DEFAULT_TEXT_COLOR,
-        GATE_SYMBOL_FONT,
+        symbolFont,
         divider,
         rect.h);
     painter.print(
@@ -215,7 +213,7 @@ GatePainting.paintGateSymbol = (args, symbolOverride=undefined, allowExponent=tr
         'left',
         'alphabetic',
         Config.DEFAULT_TEXT_COLOR,
-        GATE_SYMBOL_FONT,
+        symbolFont,
         rect.w - divider,
         rect.h);
 };
@@ -227,7 +225,7 @@ GatePainting.paintGateSymbol = (args, symbolOverride=undefined, allowExponent=tr
  * @returns {!{symbol: !string, offsetY: !int}} The symbol without any extra lines.
  * @private
  */
-function _paintSymbolHandleLines(painter, symbol, rect) {
+function _paintSymbolHandleLines(painter, symbol, rect, font) {
     let lines = symbol.split('\n');
 
     for (let i = 1; i < lines.length; i++) {
@@ -238,7 +236,7 @@ function _paintSymbolHandleLines(painter, symbol, rect) {
             'center',
             'hanging',
             Config.DEFAULT_TEXT_COLOR,
-            GATE_SYMBOL_FONT,
+            font,
             rect.w,
             16);
     }
@@ -278,7 +276,7 @@ GatePainting.paintLocationIndependentFrame = (args,
                                               normalFillColor = undefined,
                                               toolboxFillColor = undefined) => {
     normalFillColor = normalFillColor === undefined ? Config.GATE_FILL_COLOR : normalFillColor;
-    toolboxFillColor = toolboxFillColor === undefined ? Config.GATE_FILL_COLOR : toolboxFillColor;
+    toolboxFillColor = toolboxFillColor === undefined ? Config.TOOLBOX_GATE_FILL_COLOR : toolboxFillColor;
     if (args.isInToolbox) {
         GatePainting.paintBackground(args, toolboxFillColor, normalFillColor);
         GatePainting.paintOutline(args);
