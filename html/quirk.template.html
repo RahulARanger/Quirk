@@ -26,15 +26,21 @@
                     <span>Circuit 1</span>
                 </div>
                 <div class="toolbar-header-actions">
-                    <button id="menu-button" class="toolbar-button toolbar-button-accent" type="button">Menu</button>
+                    <button id="menu-button" class="toolbar-button toolbar-button-accent" type="button"><span class="toolbar-button-icon toolbar-menu-icon" aria-hidden="true"><span></span><span></span><span></span></span><span>Menu</span></button>
                     <div class="workspace-command-bar" aria-label="Circuit actions">
                         <div class="toolbar-actions">
-                            <button id="export-button" class="toolbar-button" type="button">Export</button>
-                            <button id="clear-circuit-button" class="toolbar-button toolbar-button-danger" type="button">Clear Circuit</button>
-                            <button id="clear-all-button" class="toolbar-button toolbar-button-danger" type="button">Clear ALL</button>
-                            <button id="undo-button" class="toolbar-button" type="button">Undo</button>
-                            <button id="redo-button" class="toolbar-button" type="button">Redo</button>
-                            <button id="gate-forge-button" class="toolbar-button" type="button">Make Gate</button>
+                            <div class="toolbar-action-group" role="group" aria-label="Circuit file actions">
+                                <button id="export-button" class="toolbar-button toolbar-button-export" type="button"><svg class="toolbar-button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1v8m0-8 3 3M8 1 5 4M3 8v6h10V8" /></svg><span>Export</span></button>
+                                <button id="clear-circuit-button" class="toolbar-button toolbar-button-danger" type="button"><svg class="toolbar-button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="m4 4 8 8m0-8-8 8" /></svg><span>Clear circuit</span></button>
+                                <button id="clear-all-button" class="toolbar-button toolbar-button-danger" type="button"><svg class="toolbar-button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4h8m-7 0v9h6V4M6 2h4" /></svg><span>Clear all</span></button>
+                            </div>
+                            <span class="toolbar-action-divider" aria-hidden="true"></span>
+                            <div class="toolbar-action-group" role="group" aria-label="History actions">
+                                <button id="undo-button" class="toolbar-button toolbar-button-compact" type="button" aria-label="Undo" title="Undo"><svg class="toolbar-button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 4 2 8l4 4M2 8h8a4 4 0 0 1 4 4" /></svg><span class="toolbar-button-label">Undo</span></button>
+                                <button id="redo-button" class="toolbar-button toolbar-button-compact" type="button" aria-label="Redo" title="Redo"><svg class="toolbar-button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="m10 4 4 4-4 4m4-4H6a4 4 0 0 0-4 4" /></svg><span class="toolbar-button-label">Redo</span></button>
+                            </div>
+                            <span class="toolbar-action-divider" aria-hidden="true"></span>
+                            <button id="gate-forge-button" class="toolbar-button toolbar-button-primary" type="button"><svg class="toolbar-button-icon" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3v10M3 8h10" /></svg><span>Make gate</span></button>
                         </div>
                     </div>
                 </div>

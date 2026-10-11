@@ -38,7 +38,9 @@ let isMiddleClicking = ev => ev.which === 2;
  */
 function eventPosRelativeTo(ev, element) {
     let b = element.getBoundingClientRect();
-    return new Point(ev.clientX - b.left, ev.clientY - b.top);
+    return new Point(
+        ev.clientX - b.left + element.scrollLeft,
+        ev.clientY - b.top + element.scrollTop);
 }
 
 /**

@@ -505,7 +505,7 @@ ParametrizedRotationGates.FormulaicRotationRxxPair = new GateBuilder().
         rxxMatrix(parseTimeFormula(formula, t*2-1, true) || 0)).
     setWithParamPropertyRecomputeFunc(updateUsingFormula).
     promiseEffectIsUnitary().
-    gate.withParam('pi/2');
+    gate.withParam('pi t^2');
 
 ParametrizedRotationGates.FormulaicRotationX = new GateBuilder().
     setSerializedIdAndSymbol("X^ft").

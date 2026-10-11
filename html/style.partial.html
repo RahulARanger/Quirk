@@ -120,25 +120,41 @@
     }
     .toolbar-header-actions { display: flex; align-items: center; gap: 8px; min-width: 0; margin-left: auto; }
     .document-dot, .status-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--app-accent); }
-    .toolbar-actions { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+    .toolbar-actions { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+    .toolbar-action-group { display: flex; align-items: center; gap: 3px; }
+    .toolbar-action-divider { width: 1px; height: 18px; margin: 0 3px; background: var(--app-border); }
     .toolbar-button {
-        min-height: 27px;
-        padding: 4px 8px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        min-height: 30px;
+        padding: 5px 9px;
         border: 1px solid var(--app-border-soft);
-        border-radius: 6px;
+        border-radius: 8px;
         color: var(--app-muted);
-        background: var(--app-surface-raised);
+        background: transparent;
         font-size: 12px;
         font-weight: 600;
         cursor: pointer;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.035);
+        white-space: nowrap;
+        box-shadow: none;
         transition: color 120ms ease, background 120ms ease, border-color 120ms ease, box-shadow 120ms ease, transform 120ms ease;
     }
-    .toolbar-button:hover { color: var(--app-text); background: var(--app-surface-hover); border-color: var(--app-border); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.05); transform: translateY(-1px); }
+    .toolbar-button:hover { color: var(--app-text); background: var(--app-surface-hover); border-color: var(--app-border); box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12); transform: translateY(-1px); }
     .toolbar-button:active { background: var(--app-accent-soft); box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.16); transform: translateY(0); }
     .toolbar-button:disabled { cursor: default; opacity: 0.48; }
+    .toolbar-button-icon { width: 14px; height: 14px; flex: 0 0 auto; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.5; }
+    .toolbar-menu-icon { display: inline-flex; flex-direction: column; justify-content: center; gap: 2px; }
+    .toolbar-menu-icon span { display: block; width: 13px; height: 1.5px; border-radius: 2px; background: currentColor; }
     .toolbar-button-accent { color: var(--app-text); background: var(--app-accent-soft); border-color: color-mix(in srgb, var(--app-accent) 60%, transparent); box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06); }
+    .toolbar-button-accent:hover { color: var(--app-text); background: color-mix(in srgb, var(--app-accent) 20%, var(--app-surface)); border-color: var(--app-accent); }
+    .toolbar-button-export { color: var(--app-text); background: var(--app-surface-raised); }
     .toolbar-button-danger { color: var(--app-danger); }
+    .toolbar-button-danger:hover { color: var(--app-danger); background: color-mix(in srgb, var(--app-danger) 10%, var(--app-surface)); border-color: color-mix(in srgb, var(--app-danger) 60%, transparent); }
+    .toolbar-button-primary { color: #fff; background: var(--app-accent); border-color: var(--app-accent); box-shadow: 0 4px 10px color-mix(in srgb, var(--app-accent) 28%, transparent); }
+    .toolbar-button-primary:hover { color: #fff; background: color-mix(in srgb, var(--app-accent) 88%, #fff); border-color: color-mix(in srgb, var(--app-accent) 88%, #fff); }
+    .toolbar-button-compact { padding-inline: 8px; }
     .app-meta { display: flex; align-items: center; gap: 6px; color: var(--app-subtle); font-size: 11px; white-space: nowrap; }
     .status-dot { width: 6px; height: 6px; background: var(--app-accent); }
 
@@ -204,10 +220,10 @@
         width: max-content;
         flex: 0 0 auto;
         min-height: 32px;
-        padding: 2px 3px;
+        padding: 3px;
         border: 1px solid var(--app-border);
-        border-radius: 7px;
-        background: var(--app-surface);
+        border-radius: 10px;
+        background: var(--app-surface-raised);
         box-shadow: 0 8px 20px rgba(0, 0, 0, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.035);
     }
     .workspace-command-bar .toolbar-actions { flex-wrap: nowrap; }
@@ -288,7 +304,9 @@
         .toolbar-brand { flex: 1 0 auto; }
         .toolbar-brand span { display: none; }
         .toolbar-actions { gap: 2px; }
-        .toolbar-button { min-height: 26px; padding: 3px 6px; font-size: 11px; }
+        .toolbar-button { min-height: 28px; padding: 4px 7px; font-size: 11px; }
+        .toolbar-button-icon { width: 13px; height: 13px; }
+        .toolbar-action-divider { display: none; }
         .toolbar-button-danger { display: none; }
         .toolbar-header-actions { flex: 0 0 auto; max-width: calc(100vw - 86px); }
         .workspace-main { padding: 9px 8px 9px; }

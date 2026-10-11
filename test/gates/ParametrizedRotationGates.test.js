@@ -314,6 +314,7 @@ suite.test('formulaic_rxx', () => {
 suite.test('formulaic_rxx_pair', () => {
     let rxx = Gates.ParametrizedRotationGates.FormulaicRotationRxxPair;
     assertThat(rxx.height).isEqualTo(1);
+    assertThat(rxx.param).isEqualTo('pi t^2');
     assertThat(rxx.withParam('pi/2').knownMatrixAt(0)).
         isApproximatelyEqualTo(Gates.ParametrizedRotationGates.FormulaicRotationRxx.
             withParam('pi/2').knownMatrixAt(0));
