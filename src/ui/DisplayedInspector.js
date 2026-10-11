@@ -96,11 +96,11 @@ class DisplayedInspector {
      * @param {!Painter} painter
      * @param {!CircuitStats} stats
      */
-    paint(painter, stats) {
+    paint(painter, stats, toolboxXOffset=0) {
         painter.fillRect(this.drawArea, Config.BACKGROUND_COLOR);
 
-        this.displayedToolboxTop.paint(painter, stats, this.hand);
-        this.displayedToolboxBottom.paint(painter, stats, this.hand);
+        this.displayedToolboxTop.paint(painter, stats, this.hand, toolboxXOffset);
+        this.displayedToolboxBottom.paint(painter, stats, this.hand, toolboxXOffset);
         this.displayedCircuit.paint(painter, this.hand, stats);
         this._paintHand(painter, stats);
         this._drawHint(painter);
@@ -174,12 +174,12 @@ class DisplayedInspector {
      * @param {!boolean=false} alt
      * @returns {!DisplayedInspector}
      */
-    afterGrabbing(duplicate=false, wholeCol=false, ignoreResizeTabs=false, alt=false) {
+    afterGrabbing(duplicate=false, wholeCol=false, ignoreResizeTabs=false, alt=false, toolboxXOffset=0) {
         let hand = this.hand;
         let circuit = this.displayedCircuit;
 
-        hand = this.displayedToolboxTop.tryGrab(hand);
-        hand = this.displayedToolboxBottom.tryGrab(hand);
+        hand = this.displayedToolboxTop.tryGrab(hand, toolboxXOffset);
+        hand = this.displayedToolboxBottom.tryGrab(hand, toolboxXOffset);
         let obj = circuit.tryGrab(hand, duplicate, wholeCol, ignoreResizeTabs, alt);
         hand = obj.newHand;
         circuit = obj.newCircuit;
@@ -268,10 +268,10 @@ class DisplayedInspector {
     /**
      * @returns {Infinity|!number}
      */
-    stableDuration() {
+    stableDuration(toolboxXOffset=0) {
         return Math.min(
-            this.displayedToolboxTop.stableDuration(this.hand),
-            this.displayedToolboxBottom.stableDuration(this.hand),
+            this.displayedToolboxTop.stableDuration(this.hand, toolboxXOffset),
+            this.displayedToolboxBottom.stableDuration(this.hand, toolboxXOffset),
             this.hand.stableDuration(),
             this.displayedCircuit.stableDuration());
     }

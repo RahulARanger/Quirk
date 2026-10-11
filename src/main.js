@@ -226,20 +226,21 @@ const redrawNow = () => {
     canvas.style.height = `${size.h}px`;
     let painter = new Painter(canvas, semiStableRng.cur.restarted(), size.w, size.h);
     shown.updateArea(painter.paintableArea());
-    shown.paint(painter, stats);
+    shown.paint(painter, stats, canvasDiv.scrollLeft);
     painter.paintDeferred();
 
     displayed.get().hand.paintCursor(painter);
     scrollBlocker.setBlockers(painter.touchBlockers, painter.desiredCursorStyle);
     canvas.style.cursor = painter.desiredCursorStyle || 'auto';
 
-    let dt = displayed.get().stableDuration();
+    let dt = displayed.get().stableDuration(canvasDiv.scrollLeft);
     if (dt < Infinity || shown.displayedCircuit.isWireHovering(shown.hand)) {
         window.requestAnimationFrame(() => redrawThrottle.trigger());
     }
 };
 
 redrawThrottle = new CooldownThrottle(redrawNow, Config.REDRAW_COOLDOWN_MILLIS, 0.1, true);
+canvasDiv.addEventListener('scroll', () => redrawThrottle.trigger(), false);
 window.addEventListener('resize', () => redrawThrottle.trigger(), false);
 window.addEventListener('quirk-theme-change', () => redrawThrottle.trigger(), false);
 displayed.observable().subscribe(() => redrawThrottle.trigger());
@@ -282,7 +283,8 @@ watchDrags(canvasDiv,
             return;
         }
 
-        newInspector = newInspector.afterGrabbing(ev.shiftKey, ev.ctrlKey || ev.metaKey);
+        newInspector = newInspector.afterGrabbing(
+            ev.shiftKey, ev.ctrlKey || ev.metaKey, false, false, canvasDiv.scrollLeft);
         if (displayed.get().isEqualTo(newInspector) || !newInspector.hand.isBusy()) {
             return;
         }
@@ -291,7 +293,8 @@ watchDrags(canvasDiv,
         revision.startedWorkingOnCommit();
         displayed.set(
             syncArea(oldInspector.withHand(newHand).withJustEnoughWires(newInspector.hand, 1)).
-                afterGrabbing(ev.shiftKey, ev.ctrlKey || ev.metaKey, false, ev.altKey));
+                afterGrabbing(
+                    ev.shiftKey, ev.ctrlKey || ev.metaKey, false, ev.altKey, canvasDiv.scrollLeft));
 
         ev.preventDefault();
     },
@@ -352,7 +355,7 @@ canvasDiv.addEventListener('mousedown', ev => {
     } else {
         newInspector = cur.
             withHand(newHand).
-            afterGrabbing(false, false, true, false). // Grab the gate.
+            afterGrabbing(false, false, true, false, canvasDiv.scrollLeft). // Grab the gate.
             withHand(newHand). // Lose the gate.
             afterTidyingUp().
             withJustEnoughWires(newHand, 0);

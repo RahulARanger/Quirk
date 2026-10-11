@@ -105,11 +105,11 @@ class DisplayedToolbox {
      * @returns {!Rect}
      * @private
      */
-    gateDrawRect(groupIndex, gateIndex) {
+    gateDrawRect(groupIndex, gateIndex, xOffset=0) {
         let dx = gateIndex % 2;
         let dy = Math.floor(gateIndex / 2);
 
-        let x = Config.TOOLBOX_MARGIN_X +
+        let x = xOffset + Config.TOOLBOX_MARGIN_X +
             dx * Config.TOOLBOX_GATE_X_SPAN +
             groupIndex * Config.TOOLBOX_GROUP_SPAN;
         let y = this.top +
@@ -128,14 +128,14 @@ class DisplayedToolbox {
      * @returns {!Rect}
      * @private
      */
-    groupLabelRect(groupIndex) {
+    groupLabelRect(groupIndex, xOffset=0) {
         if (this.labelsOnTop) {
-            let r = this.gateDrawRect(groupIndex, 0);
+            let r = this.gateDrawRect(groupIndex, 0, xOffset);
             let c = new Point(r.x + Config.TOOLBOX_GATE_X_SPAN - Config.TOOLBOX_GATE_X_SPACING / 2, r.y - 18);
             return new Rect(c.x - Config.TOOLBOX_GATE_X_SPAN, c.y, Config.TOOLBOX_GATE_X_SPAN * 2, 20);
         }
 
-        let r = this.gateDrawRect(groupIndex, this.groupHeight*2 - 2);
+        let r = this.gateDrawRect(groupIndex, this.groupHeight*2 - 2, xOffset);
         let c = new Point(r.x + Config.TOOLBOX_GATE_X_SPAN - Config.TOOLBOX_GATE_X_SPACING / 2, r.bottom());
         return new Rect(c.x - Config.TOOLBOX_GATE_X_SPAN, c.y+2, Config.TOOLBOX_GATE_X_SPAN * 2, 20);
     }
@@ -146,7 +146,7 @@ class DisplayedToolbox {
      *
      * @returns {undefined|!{groupIndex: !int, gateIndex: !int, gate: !Gate, rect: !Rect}}
      */
-    findGateAt(pt) {
+    findGateAt(pt, xOffset=0) {
         if (pt === undefined) {
             return undefined;
         }
@@ -154,7 +154,7 @@ class DisplayedToolbox {
             let group = this.toolboxGroups[groupIndex];
             for (let gateIndex = 0; gateIndex < group.gates.length; gateIndex++) {
                 let gate = group.gates[gateIndex];
-                let rect = this.gateDrawRect(groupIndex, gateIndex);
+                let rect = this.gateDrawRect(groupIndex, gateIndex, xOffset);
                 if (gate !== undefined && rect.containsPoint(pt)) {
                     return {groupIndex, gateIndex, gate, rect};
                 }
@@ -202,25 +202,25 @@ class DisplayedToolbox {
      * @param {!CircuitStats} stats
      * @param {!Hand} hand
      */
-    paint(painter, stats, hand) {
-        painter.fillRect(this.curArea(painter.width), Config.BACKGROUND_COLOR_TOOLBOX);
+    paint(painter, stats, hand, xOffset=0) {
+        painter.fillRect(this.curArea(painter.width).shiftedBy(xOffset, 0), Config.BACKGROUND_COLOR_TOOLBOX);
         painter.strokeLine(
-            new Point(0, this.top + 0.5),
-            new Point(painter.width, this.top + 0.5),
+            new Point(xOffset, this.top + 0.5),
+            new Point(xOffset + painter.width, this.top + 0.5),
             Config.TOOLBOX_DIVIDER_COLOR);
         painter.strokeLine(
-            new Point(0, this.top + this.desiredHeight() - 0.5),
-            new Point(painter.width, this.top + this.desiredHeight() - 0.5),
+            new Point(xOffset, this.top + this.desiredHeight() - 0.5),
+            new Point(xOffset + painter.width, this.top + this.desiredHeight() - 0.5),
             Config.TOOLBOX_DIVIDER_COLOR);
         for (let groupIndex = 1; groupIndex < this.toolboxGroups.length; groupIndex++) {
-            let x = Config.TOOLBOX_MARGIN_X + groupIndex * Config.TOOLBOX_GROUP_SPAN - Config.TOOLBOX_GROUP_SPACING / 2;
+            let x = xOffset + Config.TOOLBOX_MARGIN_X + groupIndex * Config.TOOLBOX_GROUP_SPAN - Config.TOOLBOX_GROUP_SPACING / 2;
             painter.strokeLine(
                 new Point(x, this.top + 10),
                 new Point(x, this.top + this.desiredHeight() - 10),
                 Config.TOOLBOX_DIVIDER_COLOR);
         }
-        this._standardApperance.paint(0, this.top, painter);
-        this._paintDeviations(painter, stats, hand);
+        this._standardApperance.paint(xOffset, this.top, painter);
+        this._paintDeviations(painter, stats, hand, xOffset);
     }
 
     /**
@@ -273,11 +273,11 @@ class DisplayedToolbox {
      * @param {!CircuitStats} stats
      * @param {!Hand} hand
      */
-    _paintDeviations(painter, stats, hand) {
+    _paintDeviations(painter, stats, hand, xOffset) {
         for (let groupIndex = 0; groupIndex < this.toolboxGroups.length; groupIndex++) {
             // Custom gates.
             if (groupIndex >= this._originalGroups.length) {
-                this._paintGatesInGroup(painter, hand, groupIndex);
+                this._paintGatesInGroup(painter, hand, groupIndex, xOffset);
             }
 
             // Keep scroll blockers positioned over gates.
@@ -285,14 +285,14 @@ class DisplayedToolbox {
             for (let gateIndex = 0; gateIndex < group.gates.length; gateIndex++) {
                 if (group.gates[gateIndex] !== undefined) {
                     painter.noteTouchBlocker({
-                        rect: this.gateDrawRect(groupIndex, gateIndex),
+                        rect: this.gateDrawRect(groupIndex, gateIndex, xOffset),
                         cursor: 'pointer'}
                     );
                 }
             }
         }
 
-        this._paintFocus(painter, stats, hand);
+        this._paintFocus(painter, stats, hand, xOffset);
     }
 
     /**
@@ -301,9 +301,9 @@ class DisplayedToolbox {
      * @param {!int} groupIndex
      * @private
      */
-    _paintGatesInGroup(painter, hand, groupIndex) {
+    _paintGatesInGroup(painter, hand, groupIndex, xOffset=0) {
         let group = this.toolboxGroups[groupIndex];
-        let r = this.groupLabelRect(groupIndex);
+        let r = this.groupLabelRect(groupIndex, xOffset);
         painter.print(
             group.hint,
             r.x + r.w/2,
@@ -320,7 +320,7 @@ class DisplayedToolbox {
             if (gate === undefined) {
                 continue;
             }
-            let rect = this.gateDrawRect(groupIndex, gateIndex);
+            let rect = this.gateDrawRect(groupIndex, gateIndex, xOffset);
             DisplayedToolbox._paintGate(painter, hand, gate, rect, false, CircuitStats.EMPTY);
         }
     }
@@ -359,9 +359,9 @@ class DisplayedToolbox {
      * @param {!Hand} hand
      * @private
      */
-    _paintFocus(painter, stats, hand) {
+    _paintFocus(painter, stats, hand, xOffset=0) {
         // Focus when hovering, but also when dragging a gate over its own toolbox spot.
-        let f = this.findGateAt(hand.pos);
+        let f = this.findGateAt(hand.pos, xOffset);
         if (f === undefined || (hand.heldGate !== undefined && f.gate.symbol !== hand.heldGate.symbol)) {
             return;
         }
@@ -418,12 +418,12 @@ class DisplayedToolbox {
      * @param {!Hand} hand
      * @returns {!Hand} newHand
      */
-    tryGrab(hand) {
+    tryGrab(hand, xOffset=0) {
         if (hand.pos === undefined || hand.isBusy()) {
             return hand;
         }
 
-        let f = this.findGateAt(hand.pos);
+        let f = this.findGateAt(hand.pos, xOffset);
         if (f === undefined) {
             return hand;
         }
@@ -438,9 +438,9 @@ class DisplayedToolbox {
      * @param {!Hand} hand
      * @returns {Infinity|!number}
      */
-    stableDuration(hand) {
+    stableDuration(hand, xOffset=0) {
         return seq(hand.hoverPoints()).
-            map(p => this.findGateAt(p)).
+            map(p => this.findGateAt(p, xOffset)).
             filter(e => e !== undefined).
             map(e => e.gate.stableDuration()).
             min(Infinity);
